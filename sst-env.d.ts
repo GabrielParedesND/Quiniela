@@ -6,9 +6,22 @@
 
 declare module "sst" {
   export interface Resource {
-    "MyWeb": {
+    "QuinielaUserPool": {
+      "id": string
+      "type": "sst.aws.CognitoUserPool"
+    }
+    "QuinielaUserPoolClient": {
+      "id": string
+      "secret": string
+      "type": "sst.aws.CognitoUserPoolClient"
+    }
+    "QuinielaWeb": {
       "type": "sst.aws.Nextjs"
       "url": string
+    }
+    "UsersTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
     }
   }
 }
