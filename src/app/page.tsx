@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
+import ImagePlaceholder from '@/components/ImagePlaceholder';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,10 +35,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--color-bg)' }}>
-      <section className="fade-in max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center p-4 relative" style={{ backgroundColor: 'var(--color-bg)' }}>
+      {/* Background placeholder */}
+      <div 
+        className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none"
+        title="Background Pattern\n1920x1080px\nAspect Ratio: 16:9"
+      >
+        <div className="text-center">
+          <p className="text-4xl font-black" style={{ color: 'var(--color-warning)' }}>BACKGROUND PATTERN</p>
+          <p className="text-2xl font-bold mt-2" style={{ color: 'var(--color-muted)' }}>1920x1080px (16:9)</p>
+        </div>
+      </div>
+      
+      <section className="fade-in max-w-md w-full relative z-10">
         <div className="p-8 rounded-2xl shadow-xl text-center border" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <div className="text-6xl mb-4">🌍</div>
+          <div className="flex justify-center mb-4">
+            <ImagePlaceholder width={96} height={96} label="LOGO LARGE" />
+          </div>
           <h2 className="text-2xl font-bold mb-2 tracking-tighter uppercase italic" style={{ color: 'var(--color-text)' }}>
             Quiniela Mundialista
           </h2>
@@ -49,11 +63,7 @@ export default function LoginPage() {
               className="social-btn w-full flex items-center justify-center space-x-3 py-3 rounded-xl font-semibold text-sm border hover:opacity-80 transition"
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-surface2)' }}
             >
-              <img
-                src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png"
-                className="w-5 h-5"
-                alt="Google"
-              />
+              <ImagePlaceholder width={24} height={24} label="G" />
               <span>Continuar con Google</span>
             </button>
             <button
@@ -61,9 +71,7 @@ export default function LoginPage() {
               className="social-btn w-full flex items-center justify-center space-x-3 py-3 rounded-xl font-semibold text-sm border hover:opacity-80 transition"
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-surface2)' }}
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-primary)' }}>
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
+              <ImagePlaceholder width={24} height={24} label="F" />
               <span>Continuar con Facebook</span>
             </button>
           </div>

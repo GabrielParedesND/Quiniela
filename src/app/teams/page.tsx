@@ -34,12 +34,27 @@ export default function TeamsPage() {
 
   return (
     <AppShell>
-      <section className="fade-in space-y-4">
-        <PageHeader title="Ranking de Equipos" showBackButton />
+      <section className="fade-in space-y-4 relative">
+        {/* Background pattern indicator */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none z-0"
+          title="Teams Background Pattern\n1920x1080px\nAspect Ratio: 16:9"
+        >
+          <div className="text-center">
+            <p className="text-6xl font-black" style={{ color: 'var(--color-warning)' }}>TEAMS BG</p>
+            <p className="text-3xl font-bold mt-2" style={{ color: 'var(--color-muted)' }}>1920x1080 (16:9)</p>
+          </div>
+        </div>
 
-        <TabSelector tabs={tabs} activeTab={activeGroup} onTabChange={setActiveGroup} />
+        <div className="relative z-10">
+          <PageHeader title="Ranking de Equipos" showBackButton />
+        </div>
 
-        <div className="shadow-sm rounded-3xl border overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+        <div className="relative z-10">
+          <TabSelector tabs={tabs} activeTab={activeGroup} onTabChange={setActiveGroup} />
+        </div>
+
+        <div className="shadow-sm rounded-3xl border overflow-hidden relative z-10" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="p-4 border-b" style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)' }}>
             <h3 className="font-bold uppercase text-xs tracking-widest" style={{ color: 'var(--color-text)' }}>
               Grupo {activeGroup}

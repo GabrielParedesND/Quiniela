@@ -1,5 +1,7 @@
 'use client';
 
+import ImagePlaceholder from './ImagePlaceholder';
+
 interface Team {
   short: string;
   flagUrl: string;
@@ -34,23 +36,13 @@ export default function ResultCard({
 
   return (
     <div
-      className="border rounded-2xl overflow-hidden p-4 flex items-center justify-between hover:opacity-90 transition"
+      className="border rounded-2xl p-4 flex items-center justify-between hover:opacity-90 transition overflow-visible"
       style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
     >
       <div className="flex items-center space-x-4">
-        <div className="flex -space-x-2">
-          <img
-            src={teamA.flagUrl}
-            className="w-8 h-5 object-cover rounded shadow-sm border-2"
-            style={{ borderColor: 'var(--color-surface)' }}
-            alt={teamA.short}
-          />
-          <img
-            src={teamB.flagUrl}
-            className="w-8 h-5 object-cover rounded shadow-sm border-2"
-            style={{ borderColor: 'var(--color-surface)' }}
-            alt={teamB.short}
-          />
+        <div className="flex gap-1">
+          <ImagePlaceholder width={48} height={36} label="FLAG" tooltipPosition="left" />
+          <ImagePlaceholder width={48} height={36} label="FLAG" tooltipPosition="right" />
         </div>
         <div>
           <p className="text-[10px] font-black uppercase tracking-tighter" style={{ color: 'var(--color-text)' }}>

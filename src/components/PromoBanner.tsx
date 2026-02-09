@@ -1,5 +1,7 @@
 'use client';
 
+import ImagePlaceholder from './ImagePlaceholder';
+
 interface Sponsor {
   name: string;
   logo?: string;
@@ -26,16 +28,16 @@ export default function PromoBanner({
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="text-center mb-4">
+      <div className="text-center mb-4 relative">
         <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--color-muted)' }}>
           Patrocinadores Oficiales
         </p>
+        <div className="absolute -top-2 right-0 px-2 py-1 rounded text-[8px] font-black" style={{ backgroundColor: 'var(--color-warning)', color: 'var(--color-primaryText)' }} title="Sponsor Section\nMaster: 200x80px (5:2)\nGold: 120x60px (2:1)\nSilver: 80x40px (2:1)">
+          SPONSOR AREA
+        </div>
       </div>
 
-      {/* Sponsors Grid */}
       <div className="rounded-2xl border shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-        {/* Master Sponsor */}
         {masterSponsors.length > 0 && (
           <div className="border-b" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface2)' }}>
             <div className="p-6">
@@ -46,18 +48,7 @@ export default function PromoBanner({
                     Patrocinador Master
                   </span>
                   <div className="w-full h-20 flex items-center justify-center">
-                    {sponsor.logo ? (
-                      <img 
-                        src={sponsor.logo} 
-                        alt={sponsor.name}
-                        className="max-h-16 max-w-[200px] object-contain grayscale hover:grayscale-0 transition-all duration-300"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-2xl font-black tracking-tight" style={{ color: 'var(--color-text)' }}>{sponsor.name}</p>
-                        <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>Logo del patrocinador</p>
-                      </div>
-                    )}
+                    <ImagePlaceholder width={200} height={80} label="MASTER LOGO" />
                   </div>
                 </div>
               ))}
@@ -65,9 +56,7 @@ export default function PromoBanner({
           </div>
         )}
 
-        {/* Gold & Silver Sponsors */}
         <div className="p-4">
-          {/* Gold Sponsors */}
           {goldSponsors.length > 0 && (
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-3">
@@ -83,17 +72,7 @@ export default function PromoBanner({
                     style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)' }}
                   >
                     <div className="h-12 flex items-center justify-center">
-                      {sponsor.logo ? (
-                        <img 
-                          src={sponsor.logo} 
-                          alt={sponsor.name}
-                          className="max-h-10 max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
-                        />
-                      ) : (
-                        <p className="text-sm font-bold transition-colors text-center" style={{ color: 'var(--color-text)' }}>
-                          {sponsor.name}
-                        </p>
-                      )}
+                      <ImagePlaceholder width={120} height={60} label="GOLD" className="mx-auto" />
                     </div>
                   </div>
                 ))}
@@ -101,7 +80,6 @@ export default function PromoBanner({
             </div>
           )}
 
-          {/* Silver Sponsors */}
           {silverSponsors.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -117,17 +95,7 @@ export default function PromoBanner({
                     style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)' }}
                   >
                     <div className="h-8 flex items-center justify-center">
-                      {sponsor.logo ? (
-                        <img 
-                          src={sponsor.logo} 
-                          alt={sponsor.name}
-                          className="max-h-6 max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
-                        />
-                      ) : (
-                        <p className="text-[10px] font-bold transition-colors text-center" style={{ color: 'var(--color-muted)' }}>
-                          {sponsor.name}
-                        </p>
-                      )}
+                      <ImagePlaceholder width={80} height={40} label="SILVER" className="mx-auto" />
                     </div>
                   </div>
                 ))}

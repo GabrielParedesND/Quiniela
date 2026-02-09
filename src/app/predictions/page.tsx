@@ -54,12 +54,27 @@ export default function PredictionsPage() {
 
   return (
     <AppShell>
-      <section className="fade-in space-y-4">
-        <PageHeader title="Ingresar Marcadores" showBackButton />
+      <section className="fade-in space-y-4 relative">
+        {/* Background pattern indicator */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none z-0"
+          title="Predictions Background Pattern\n1920x1080px\nAspect Ratio: 16:9"
+        >
+          <div className="text-center">
+            <p className="text-6xl font-black" style={{ color: 'var(--color-warning)' }}>PREDICTIONS BG</p>
+            <p className="text-3xl font-bold mt-2" style={{ color: 'var(--color-muted)' }}>1920x1080 (16:9)</p>
+          </div>
+        </div>
 
-        <TabSelector tabs={tabs} activeTab={activeJornada} onTabChange={setActiveJornada} />
+        <div className="relative z-10">
+          <PageHeader title="Ingresar Marcadores" showBackButton />
+        </div>
 
-        <div className="space-y-4 pb-24 mt-4">
+        <div className="relative z-10">
+          <TabSelector tabs={tabs} activeTab={activeJornada} onTabChange={setActiveJornada} />
+        </div>
+
+        <div className="space-y-4 pb-24 mt-4 relative z-10">
           {jornadaMatches.map((m) => {
             const teamA = teams.find((t) => t.id === m.teamAId)!;
             const teamB = teams.find((t) => t.id === m.teamBId)!;

@@ -1,5 +1,7 @@
 'use client';
 
+import ImagePlaceholder from './ImagePlaceholder';
+
 interface NavigationCardProps {
   icon: string;
   title: string;
@@ -25,15 +27,7 @@ export default function NavigationCard({
       }}
     >
       <div className="flex items-center space-x-4">
-        <div 
-          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition"
-          style={{ 
-            backgroundColor: 'var(--color-surface2)', 
-            color: 'var(--color-primary)'
-          }}
-        >
-          {icon}
-        </div>
+        <ImagePlaceholder width={48} height={48} label="ICON" />
         <div>
           <h3 className="font-bold uppercase text-sm tracking-tight" style={{ color: 'var(--color-text)' }}>
             {title}

@@ -1,5 +1,7 @@
 'use client';
 
+import ImagePlaceholder from './ImagePlaceholder';
+
 interface Team {
   id: number;
   name: string;
@@ -46,12 +48,9 @@ export default function MatchCard({
       </div>
       <div className="p-5 flex items-center justify-between">
         <div className="text-center w-1/3">
-          <img
-            src={teamA.flagUrl}
-            className="w-10 h-7 mx-auto rounded-sm border mb-1 shadow-sm"
-            style={{ borderColor: 'var(--color-border)' }}
-            alt={teamA.name}
-          />
+          <div className="flex justify-center mb-1">
+            <ImagePlaceholder width={48} height={36} label="FLAG" />
+          </div>
           <p className="text-[9px] font-black uppercase" style={{ color: 'var(--color-text)' }}>
             {teamA.name}
           </p>
@@ -88,12 +87,9 @@ export default function MatchCard({
           />
         </div>
         <div className="text-center w-1/3">
-          <img
-            src={teamB.flagUrl}
-            className="w-10 h-7 mx-auto rounded-sm border mb-1 shadow-sm"
-            style={{ borderColor: 'var(--color-border)' }}
-            alt={teamB.name}
-          />
+          <div className="flex justify-center mb-1">
+            <ImagePlaceholder width={48} height={36} label="FLAG" />
+          </div>
           <p className="text-[9px] font-black uppercase" style={{ color: 'var(--color-text)' }}>
             {teamB.name}
           </p>

@@ -55,15 +55,31 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <section className="fade-in space-y-6">
-        <UserCard
-          fullName={fullName}
-          avatarUrl={avatarUrl}
-          points={points}
-          onViewResults={() => router.push('/results')}
-        />
+      <section className="fade-in space-y-6 relative">
+        {/* Background pattern indicator - Fixed sidebar */}
+        <div 
+          className="fixed right-4 top-1/2 transform -translate-y-1/2 px-3 py-2 rounded-lg shadow-xl z-[9999] border-2"
+          style={{ 
+            backgroundColor: 'var(--color-primary)', 
+            color: 'var(--color-primaryText)',
+            borderColor: 'var(--color-warning)'
+          }}
+        >
+          <p className="text-[10px] font-black uppercase">DASHBOARD BG</p>
+          <p className="text-[9px] font-bold">1920x1080px</p>
+          <p className="text-[9px] font-bold">Ratio: 16:9</p>
+        </div>
 
-        <div className="grid grid-cols-1 gap-3">
+        <div className="relative z-10">
+          <UserCard
+            fullName={fullName}
+            avatarUrl={avatarUrl}
+            points={points}
+            onViewResults={() => router.push('/results')}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 relative z-10">
           <NavigationCard
             icon="⚽"
             title="Pronosticar Resultados"
@@ -81,7 +97,8 @@ export default function DashboardPage() {
           />
         </div>
 
-        <PromoBanner 
+        <div className="relative z-10">
+          <PromoBanner 
           sponsors={[
             { 
               name: 'Copa Mundial 2026', 
@@ -109,6 +126,7 @@ export default function DashboardPage() {
             }
           ]}
         />
+        </div>
       </section>
     </AppShell>
   );

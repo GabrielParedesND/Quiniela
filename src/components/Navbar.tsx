@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth/cognito';
+import ImagePlaceholder from './ImagePlaceholder';
 
 interface NavbarProps {
   username: string;
@@ -25,7 +26,7 @@ export default function Navbar({ username, avatarUrl, onAvatarClick }: NavbarPro
     <nav className="text-white shadow-lg z-50 sticky top-20" style={{ backgroundColor: 'var(--color-primary)' }}>
       <div className="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-2 cursor-pointer" onClick={handleHome}>
-          <span className="text-2xl">🏆</span>
+          <ImagePlaceholder width={40} height={40} label="LOGO" tooltipPosition="right" />
           <h1 className="font-bold text-lg tracking-tight italic uppercase" style={{ color: 'var(--color-primaryText)' }}>
             Copa<span className="font-light not-italic">Mundial</span>
           </h1>
