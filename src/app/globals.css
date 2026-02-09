@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --background: #f1f5f9;
   --foreground: #1e293b;
@@ -22,7 +26,26 @@
   --color-accent: var(--color-accent, #0284c7);
   --color-danger: var(--color-danger, #ef4444);
   --color-border: var(--color-border, #e2e8f0);
+  --color-success: var(--color-success, #10b981);
 }
+
+/* Tailwind utility classes using theme variables */
+.bg-bg { background-color: var(--color-bg); }
+.bg-surface { background-color: var(--color-surface); }
+.bg-surface2 { background-color: var(--color-surface2); }
+.bg-primary { background-color: var(--color-primary); }
+.bg-accent { background-color: var(--color-accent); }
+
+.text-text { color: var(--color-text); }
+.text-muted { color: var(--color-muted); }
+.text-primary { color: var(--color-primary); }
+.text-primaryText { color: var(--color-primaryText); }
+.text-accent { color: var(--color-accent); }
+.text-danger { color: var(--color-danger); }
+
+.border-border { border-color: var(--color-border); }
+.border-primary { border-color: var(--color-primary); }
+.border-accent { border-color: var(--color-accent); }
 
 body {
   background: var(--color-bg);

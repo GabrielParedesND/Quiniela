@@ -184,3 +184,47 @@ export const isAuthenticated = async (): Promise<boolean> => {
     });
   });
 };
+
+export const forgotPassword = async (email: string): Promise<any> => {
+  const userData = {
+    Username: email,
+    Pool: userPool,
+  };
+
+  const cognitoUser = new CognitoUser(userData);
+
+  return new Promise((resolve, reject) => {
+    cognitoUser.forgotPassword({
+      onSuccess: (result) => {
+        resolve(result);
+      },
+      onFailure: (err) => {
+        reject(err);
+      },
+    });
+  });
+};
+
+export const confirmForgotPassword = async (
+  email: string,
+  code: string,
+  newPassword: string
+): Promise<any> => {
+  const userData = {
+    Username: email,
+    Pool: userPool,
+  };
+
+  const cognitoUser = new CognitoUser(userData);
+
+  return new Promise((resolve, reject) => {
+    cognitoUser.confirmPassword(code, newPassword, {
+      onSuccess: () => {
+        resolve('Password reset successful');
+      },
+      onFailure: (err) => {
+        reject(err);
+      },
+    });
+  });
+};

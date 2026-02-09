@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getUserId } from '@/lib/auth/cognito';
-import { saveUserProfile } from '@/lib/db/users';
+import { saveUserProfile, isProfileComplete } from '@/lib/db/users';
 import { useUser } from '@/contexts/UserContext';
 
 export default function OnboardingPage() {
@@ -28,7 +28,8 @@ export default function OnboardingPage() {
         return;
       }
 
-      if (user) {
+      // Si ya tiene perfil completo, redirigir a dashboard
+      if (user && isProfileComplete(user)) {
         router.push('/dashboard');
         return;
       }
@@ -118,7 +119,7 @@ export default function OnboardingPage() {
                 value={formData.nombres}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border rounded-xl focus:ring-2 outline-none text-sm"
+                className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all"
                 style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
               />
               <input
@@ -128,7 +129,7 @@ export default function OnboardingPage() {
                 value={formData.apellidos}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border rounded-xl focus:ring-2 outline-none text-sm"
+                className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all"
                 style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
               />
             </div>
@@ -148,7 +149,7 @@ export default function OnboardingPage() {
                   setFormData((prev) => ({ ...prev, dpi: value }));
                 }}
                 required
-                className="w-full p-3 border rounded-xl focus:ring-2 outline-none text-sm font-mono"
+                className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm font-mono transition-all"
                 style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
               />
             </div>
@@ -169,7 +170,7 @@ export default function OnboardingPage() {
                     setFormData((prev) => ({ ...prev, tel: value }));
                   }}
                   required
-                  className="w-full p-3 border rounded-xl focus:ring-2 outline-none text-sm font-mono"
+                  className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm font-mono transition-all"
                   style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
                 />
               </div>
@@ -184,7 +185,7 @@ export default function OnboardingPage() {
                   value={formData.edad}
                   onChange={handleChange}
                   required
-                  className="w-full p-3 border rounded-xl focus:ring-2 outline-none text-sm"
+                  className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all"
                   style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
                 />
               </div>
@@ -194,7 +195,7 @@ export default function OnboardingPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full font-black py-4 rounded-xl transition shadow-lg uppercase tracking-widest text-xs disabled:opacity-50 hover:opacity-90"
+                className="w-full font-black py-4 rounded-xl transition-all shadow-md hover:shadow-lg uppercase tracking-widest text-xs disabled:opacity-50"
                 style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primaryText)' }}
               >
                 {saving ? 'Guardando...' : 'Completar Registro'}
