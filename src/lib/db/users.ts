@@ -9,6 +9,17 @@ export interface UserProfile {
   edad: string;
 }
 
+// Campos obligatorios para validar perfil completo
+const REQUIRED_FIELDS: (keyof UserProfile)[] = ['nombres', 'apellidos', 'dpi', 'tel', 'edad'];
+
+export function isProfileComplete(profile: UserProfile | null): boolean {
+  if (!profile) return false;
+  return REQUIRED_FIELDS.every(field => {
+    const value = profile[field];
+    return value !== undefined && value !== null && value !== '';
+  });
+}
+
 export class SessionExpiredError extends Error {
   constructor() {
     super('Session expired');

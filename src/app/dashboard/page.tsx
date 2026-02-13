@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
+import { isProfileComplete } from '@/lib/db/users';
 import AppShell from '@/components/AppShell';
 import LoadingContent from '@/components/LoadingContent';
 import PromoBanner from '@/components/PromoBanner';
@@ -16,30 +18,45 @@ export default function DashboardPage() {
   const [points, setPoints] = useState(0);
 
   useEffect(() => {
-    if (loading) return;
+    const checkAccess = async () => {
+      if (loading) return;
 
-    if (!user) {
-      router.push('/');
-      return;
-    }
+      // Verificar si hay sesión activa
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
+        router.push('/');
+        return;
+      }
 
-    // Calcular puntos mock
-    let totalPoints = 0;
-    const playedMatches = matches.filter((m) => m.status === 'played');
-    playedMatches.forEach((m) => {
-      const pred = mockUserPredictions[m.id];
-      if (!pred) return;
-      const pA = parseInt(pred.a as string);
-      const pB = parseInt(pred.b as string);
-      if (pA === m.scoreA && pB === m.scoreB) totalPoints += 5;
-      else if (
-        (pA > pB && m.scoreA! > m.scoreB!) ||
-        (pB > pA && m.scoreB! > m.scoreA!) ||
-        (pA === pB && m.scoreA === m.scoreB)
-      )
-        totalPoints += 3;
-    });
-    setPoints(totalPoints);
+      // Si hay sesión pero no hay user cargado aún, esperar
+      if (!user) return;
+
+      // Validar si el perfil está completo
+      if (!isProfileComplete(user)) {
+        router.push('/onboarding');
+        return;
+      }
+
+      // Calcular puntos mock
+      let totalPoints = 0;
+      const playedMatches = matches.filter((m) => m.status === 'played');
+      playedMatches.forEach((m) => {
+        const pred = mockUserPredictions[m.id];
+        if (!pred) return;
+        const pA = parseInt(pred.a as string);
+        const pB = parseInt(pred.b as string);
+        if (pA === m.scoreA && pB === m.scoreB) totalPoints += 5;
+        else if (
+          (pA > pB && m.scoreA! > m.scoreB!) ||
+          (pB > pA && m.scoreB! > m.scoreA!) ||
+          (pA === pB && m.scoreA === m.scoreB)
+        )
+          totalPoints += 3;
+      });
+      setPoints(totalPoints);
+    };
+
+    checkAccess();
   }, [user, loading, router]);
 
   if (loading || !user) {

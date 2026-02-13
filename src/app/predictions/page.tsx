@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
+import { isProfileComplete } from '@/lib/db/users';
 import AppShell from '@/components/AppShell';
 import LoadingContent from '@/components/LoadingContent';
 import PageHeader from '@/components/PageHeader';
@@ -19,10 +21,24 @@ export default function PredictionsPage() {
   );
 
   useEffect(() => {
-    if (loading) return;
-    if (!user) {
-      router.push('/');
-    }
+    const checkAccess = async () => {
+      if (loading) return;
+
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
+        router.push('/');
+        return;
+      }
+
+      if (!user) return;
+      
+      if (!isProfileComplete(user)) {
+        router.push('/onboarding');
+        return;
+      }
+    };
+
+    checkAccess();
   }, [user, loading, router]);
 
   const handlePredictionChange = (matchId: number, team: 'a' | 'b', value: string) => {

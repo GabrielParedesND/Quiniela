@@ -1,17 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth/cognito';
 import { signIn } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
+import { isProfileComplete } from '@/lib/db/users';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { refreshUser } = useUser();
+  const { user, loading: userLoading, refreshUser } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const checkSession = async () => {
+      if (userLoading) return;
+
+      const authenticated = await isAuthenticated();
+      if (authenticated && user) {
+        // Si tiene sesión activa, verificar perfil
+        if (isProfileComplete(user)) {
+          router.push('/dashboard');
+        } else {
+          router.push('/onboarding');
+        }
+      }
+    };
+
+    checkSession();
+  }, [user, userLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +42,8 @@ export default function LoginPage() {
     try {
       await signIn({ email, password });
       await refreshUser();
-      router.push('/dashboard');
+      // Navegar a onboarding, que redirigirá a dashboard si el perfil está completo
+      router.push('/onboarding');
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally {
@@ -46,7 +68,7 @@ export default function LoginPage() {
           <div className="space-y-3 mb-6">
             <button
               onClick={handleSocialLogin}
-              className="social-btn w-full flex items-center justify-center space-x-3 py-3 rounded-xl font-semibold text-sm border hover:opacity-80 transition"
+              className="w-full flex items-center justify-center space-x-3 py-3 rounded-xl font-semibold text-sm border-2 transition-all hover:shadow-md"
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-surface2)' }}
             >
               <img
@@ -58,7 +80,7 @@ export default function LoginPage() {
             </button>
             <button
               onClick={handleSocialLogin}
-              className="social-btn w-full flex items-center justify-center space-x-3 py-3 rounded-xl font-semibold text-sm border hover:opacity-80 transition"
+              className="w-full flex items-center justify-center space-x-3 py-3 rounded-xl font-semibold text-sm border-2 transition-all hover:shadow-md"
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-surface2)' }}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-primary)' }}>
@@ -90,22 +112,52 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full p-3 border rounded-xl focus:ring-2 outline-none text-sm"
+              className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all"
               style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
             />
-            <input
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full p-3 border rounded-xl focus:ring-2 outline-none text-sm"
-              style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full p-3 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all"
+                style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:opacity-70 transition-opacity"
+                style={{ color: 'var(--color-muted)' }}
+              >
+                {showPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => router.push('/forgot-password')}
+                className="text-xs font-bold hover:underline"
+                style={{ color: 'var(--color-primary)' }}
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full font-bold py-3 rounded-xl transition shadow-md uppercase tracking-widest text-xs disabled:opacity-50 hover:opacity-90"
+              className="w-full font-bold py-3 rounded-xl transition-all shadow-md hover:shadow-lg uppercase tracking-widest text-xs disabled:opacity-50"
               style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-primaryText)' }}
             >
               {loading ? 'Cargando...' : 'Iniciar Sesión'}
