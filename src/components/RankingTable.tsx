@@ -3,7 +3,7 @@
 interface RankingUser {
   name: string;
   pts: number;
-  category: string;
+  phase: string;
 }
 
 interface RankingTableProps {
@@ -11,40 +11,41 @@ interface RankingTableProps {
 }
 
 export default function RankingTable({ users }: RankingTableProps) {
-  const getCategoryColor = (category: string) => {
-    if (category === 'Champion') return { bg: 'var(--color-accent)', text: 'var(--color-primaryText)' };
-    if (category === 'Aguador') return { bg: 'var(--color-danger)', text: 'var(--color-primaryText)' };
-    return { bg: 'var(--color-primary)', text: 'var(--color-primaryText)' };
+  const getPhaseColor = (phase: string) => {
+    if (phase === 'Cita con la Historia') return { bg: 'var(--color-accent)', text: 'var(--color-primaryText)' };
+    if (phase === 'Duelo de Gigantes') return { bg: 'var(--color-danger)', text: 'var(--color-primaryText)' };
+    if (phase === 'Zona de Campeones') return { bg: 'var(--color-primary)', text: 'var(--color-primaryText)' };
+    return { bg: 'var(--color-muted)', text: 'var(--color-primaryText)' };
   };
 
   return (
     <div
-      className="shadow-sm rounded-3xl border overflow-hidden"
+      className="shadow-sm rounded-3xl border overflow-x-auto"
       style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
     >
       <table className="min-w-full">
         <thead style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)' }}>
           <tr>
             <th
-              className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest"
+              className="px-2 sm:px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest"
               style={{ color: 'var(--color-muted)' }}
             >
               Pos
             </th>
             <th
-              className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest"
+              className="px-2 sm:px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest"
               style={{ color: 'var(--color-muted)' }}
             >
               Usuario
             </th>
             <th
-              className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest"
+              className="px-2 sm:px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest"
               style={{ color: 'var(--color-muted)' }}
             >
-              Categoría
+              Fase
             </th>
             <th
-              className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest"
+              className="px-2 sm:px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest"
               style={{ color: 'var(--color-muted)' }}
             >
               Pts
@@ -54,7 +55,7 @@ export default function RankingTable({ users }: RankingTableProps) {
         <tbody className="divide-y text-[11px]" style={{ borderColor: 'var(--color-border)' }}>
           {users.map((u, i) => {
             const isMe = u.name.includes('(Tú)');
-            const catColors = getCategoryColor(u.category);
+            const phaseColors = getPhaseColor(u.phase);
             return (
               <tr
                 key={i}
@@ -65,23 +66,23 @@ export default function RankingTable({ users }: RankingTableProps) {
                 }}
               >
                 <td
-                  className="px-4 py-3 font-black"
+                  className="px-2 sm:px-4 py-3 font-black"
                   style={{ color: i < 3 ? 'var(--color-primary)' : 'var(--color-muted)' }}
                 >
                   #{i + 1}
                 </td>
-                <td className="px-4 py-3 font-bold" style={{ color: 'var(--color-text)' }}>
+                <td className="px-2 sm:px-4 py-3 font-bold whitespace-nowrap" style={{ color: 'var(--color-text)' }}>
                   {u.name}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-2 sm:px-4 py-3 text-center">
                   <span
-                    className="px-2 py-0.5 rounded-full text-[7px] font-black uppercase italic"
-                    style={{ backgroundColor: catColors.bg, color: catColors.text }}
+                    className="inline-block whitespace-nowrap px-2 py-0.5 rounded-full text-[7px] font-black uppercase italic"
+                    style={{ backgroundColor: phaseColors.bg, color: phaseColors.text }}
                   >
-                    {u.category}
+                    {u.phase}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-center font-black" style={{ color: 'var(--color-text)' }}>
+                <td className="px-2 sm:px-4 py-3 text-center font-black" style={{ color: 'var(--color-text)' }}>
                   {u.pts}
                 </td>
               </tr>

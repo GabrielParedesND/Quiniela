@@ -10,9 +10,10 @@
     "remove": "sst remove"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.984.0",
-    "@aws-sdk/lib-dynamodb": "^3.984.0",
+    "@aws-sdk/client-dynamodb": "^3.987.0",
+    "@aws-sdk/lib-dynamodb": "^3.987.0",
     "amazon-cognito-identity-js": "^6.3.16",
+    "motion": "^12.34.3",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",

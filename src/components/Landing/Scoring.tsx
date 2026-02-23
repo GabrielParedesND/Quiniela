@@ -70,7 +70,9 @@ export default function Scoring() {
           {scoringRules.map((rule, index) => (
             <div
               key={index}
-              ref={(el) => (cardRefs.current[index] = el)}
+              ref={(el) => {
+                cardRefs.current[index] = el;
+              }}
               data-index={index}
               className={`bg-surface p-8 rounded-xl border-2 border-border text-center hover:border-primary transition-all duration-500 hover:shadow-xl ${
                 visibleCards.includes(index)

@@ -1,5 +1,7 @@
 'use client';
 
+import { brandAssets } from '@/lib/assets';
+
 interface UserCardProps {
   fullName: string;
   avatarUrl: string;
@@ -9,8 +11,18 @@ interface UserCardProps {
 
 export default function UserCard({ fullName, avatarUrl, points, onViewResults }: UserCardProps) {
   return (
-    <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-      <div className="p-6 flex justify-between items-center">
+    <div
+      className="rounded-3xl border shadow-sm overflow-hidden relative"
+      style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+    >
+      <img
+        src={brandAssets.backgrounds.userCard}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
+      />
+
+      <div className="relative z-10 p-6 flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 rounded-full border-2 overflow-hidden flex items-center justify-center shadow-inner" style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-primary)' }}>
             <img src={avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
@@ -29,8 +41,9 @@ export default function UserCard({ fullName, avatarUrl, points, onViewResults }:
           <span className="font-black text-4xl leading-none" style={{ color: 'var(--color-primary)' }}>{points}</span>
         </div>
       </div>
+
       {onViewResults && (
-        <div className="px-6 pb-6">
+        <div className="relative z-10 px-6 pb-6">
           <button
             onClick={onViewResults}
             className="w-full py-3 border rounded-xl font-bold text-xs uppercase tracking-widest transition flex items-center justify-center space-x-2 hover:opacity-90"

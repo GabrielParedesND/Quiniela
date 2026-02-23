@@ -50,7 +50,7 @@ export default function PromoBanner({
                       <img 
                         src={sponsor.logo} 
                         alt={sponsor.name}
-                        className="max-h-16 max-w-[200px] object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                        className="max-h-16 max-w-[200px] object-contain transition-all duration-300"
                       />
                     ) : (
                       <div className="text-center">
@@ -87,7 +87,7 @@ export default function PromoBanner({
                         <img 
                           src={sponsor.logo} 
                           alt={sponsor.name}
-                          className="max-h-10 max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
+                          className="max-h-10 max-w-full object-contain transition-all duration-300"
                         />
                       ) : (
                         <p className="text-sm font-bold transition-colors text-center" style={{ color: 'var(--color-text)' }}>
@@ -121,7 +121,7 @@ export default function PromoBanner({
                         <img 
                           src={sponsor.logo} 
                           alt={sponsor.name}
-                          className="max-h-6 max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
+                          className="max-h-6 max-w-full object-contain transition-all duration-300"
                         />
                       ) : (
                         <p className="text-[10px] font-bold transition-colors text-center" style={{ color: 'var(--color-muted)' }}>

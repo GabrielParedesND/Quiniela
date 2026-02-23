@@ -4,13 +4,20 @@ import {
   AuthenticationDetails,
   CognitoUserAttribute,
 } from 'amazon-cognito-identity-js';
+import { logActivity } from '@/lib/logger/activity';
 
-const poolData = {
-  UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID || '',
-  ClientId: process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID || '',
+let userPool: CognitoUserPool | null = null;
+
+const getUserPool = () => {
+  if (!userPool) {
+    const poolData = {
+      UserPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID || '',
+      ClientId: process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID || '',
+    };
+    userPool = new CognitoUserPool(poolData);
+  }
+  return userPool;
 };
-
-const userPool = new CognitoUserPool(poolData);
 
 export interface SignUpParams {
   email: string;
@@ -30,11 +37,21 @@ export const signUp = async (params: SignUpParams): Promise<any> => {
   ];
 
   return new Promise((resolve, reject) => {
-    userPool.signUp(email, password, attributeList, [], (err, result) => {
+    getUserPool().signUp(email, password, attributeList, [], async (err, result) => {
       if (err) {
+        await logActivity({
+          email,
+          activityType: 'SIGNUP_FAILED',
+          metadata: { error: err.message },
+        });
         reject(err);
         return;
       }
+      await logActivity({
+        userId: result?.userSub,
+        email,
+        activityType: 'SIGNUP_SUCCESS',
+      });
       resolve(result);
     });
   });
@@ -43,7 +60,7 @@ export const signUp = async (params: SignUpParams): Promise<any> => {
 export const confirmSignUp = async (email: string, code: string): Promise<any> => {
   const userData = {
     Username: email,
-    Pool: userPool,
+    Pool: getUserPool(),
   };
 
   const cognitoUser = new CognitoUser(userData);
@@ -62,7 +79,7 @@ export const confirmSignUp = async (email: string, code: string): Promise<any> =
 export const resendConfirmationCode = async (email: string): Promise<any> => {
   const userData = {
     Username: email,
-    Pool: userPool,
+    Pool: getUserPool(),
   };
 
   const cognitoUser = new CognitoUser(userData);
@@ -88,32 +105,48 @@ export const signIn = async (params: SignInParams): Promise<any> => {
 
   const userData = {
     Username: email,
-    Pool: userPool,
+    Pool: getUserPool(),
   };
 
   const cognitoUser = new CognitoUser(userData);
 
   return new Promise((resolve, reject) => {
     cognitoUser.authenticateUser(authenticationDetails, {
-      onSuccess: (result) => {
+      onSuccess: async (result) => {
+        const userId = result.getIdToken().payload.sub;
+        await logActivity({
+          userId,
+          email,
+          activityType: 'LOGIN_SUCCESS',
+        });
         resolve(result);
       },
-      onFailure: (err) => {
+      onFailure: async (err) => {
+        await logActivity({
+          email,
+          activityType: 'LOGIN_FAILED',
+          metadata: { error: err.message },
+        });
         reject(err);
       },
     });
   });
 };
 
-export const signOut = (): void => {
-  const cognitoUser = userPool.getCurrentUser();
+export const signOut = async (): Promise<void> => {
+  const cognitoUser = getUserPool().getCurrentUser();
   if (cognitoUser) {
+    const email = cognitoUser.getUsername();
     cognitoUser.signOut();
+    await logActivity({
+      email,
+      activityType: 'LOGOUT',
+    });
   }
 };
 
 export const getCurrentUser = (): CognitoUser | null => {
-  return userPool.getCurrentUser();
+  return getUserPool().getCurrentUser();
 };
 
 export const getUserAttributes = async (): Promise<any> => {
@@ -188,14 +221,18 @@ export const isAuthenticated = async (): Promise<boolean> => {
 export const forgotPassword = async (email: string): Promise<any> => {
   const userData = {
     Username: email,
-    Pool: userPool,
+    Pool: getUserPool(),
   };
 
   const cognitoUser = new CognitoUser(userData);
 
   return new Promise((resolve, reject) => {
     cognitoUser.forgotPassword({
-      onSuccess: (result) => {
+      onSuccess: async (result) => {
+        await logActivity({
+          email,
+          activityType: 'PASSWORD_RESET_REQUEST',
+        });
         resolve(result);
       },
       onFailure: (err) => {
@@ -212,17 +249,26 @@ export const confirmForgotPassword = async (
 ): Promise<any> => {
   const userData = {
     Username: email,
-    Pool: userPool,
+    Pool: getUserPool(),
   };
 
   const cognitoUser = new CognitoUser(userData);
 
   return new Promise((resolve, reject) => {
     cognitoUser.confirmPassword(code, newPassword, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        await logActivity({
+          email,
+          activityType: 'PASSWORD_RESET_SUCCESS',
+        });
         resolve('Password reset successful');
       },
-      onFailure: (err) => {
+      onFailure: async (err) => {
+        await logActivity({
+          email,
+          activityType: 'PASSWORD_CHANGE_FAILED',
+          metadata: { error: err.message },
+        });
         reject(err);
       },
     });

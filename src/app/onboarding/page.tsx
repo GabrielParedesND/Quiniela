@@ -3,8 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getUserId } from '@/lib/auth/cognito';
-import { saveUserProfile, isProfileComplete } from '@/lib/db/users';
+import { saveUserProfile, isProfileComplete, DEPARTAMENTOS_GT } from '@/lib/db/users';
 import { useUser } from '@/contexts/UserContext';
+
+const GENERO_OPTIONS = ['Masculino', 'Femenino', 'Otro', 'Prefiero no decir'];
+
+const inputClass =
+  'w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all';
+
+const inputStyle = {
+  backgroundColor: 'var(--color-surface2)',
+  borderColor: 'var(--color-border)',
+  color: 'var(--color-text)',
+};
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -14,7 +25,10 @@ export default function OnboardingPage() {
     apellidos: '',
     dpi: '',
     tel: '',
-    edad: '',
+    fechaNacimiento: '',
+    departamento: '',
+    municipio: '',
+    genero: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -28,10 +42,22 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Si ya tiene perfil completo, redirigir a dashboard
       if (user && isProfileComplete(user)) {
         router.push('/dashboard');
         return;
+      }
+
+      if (user) {
+        setFormData((prev) => ({
+          nombres: user.nombres || prev.nombres,
+          apellidos: user.apellidos || prev.apellidos,
+          dpi: user.dpi || prev.dpi,
+          tel: user.tel || prev.tel,
+          fechaNacimiento: user.fechaNacimiento || prev.fechaNacimiento,
+          departamento: user.departamento || prev.departamento,
+          municipio: user.municipio || prev.municipio,
+          genero: user.genero || prev.genero,
+        }));
       }
 
       setLoading(false);
@@ -42,10 +68,9 @@ export default function OnboardingPage() {
     }
   }, [router, user, userLoading]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    const field = id.replace('reg-', '');
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,8 +78,14 @@ export default function OnboardingPage() {
     setSaving(true);
     setError('');
 
-    if (formData.dpi.length < 13 || formData.tel.length < 8) {
-      setError('Por favor verifica los dígitos de DPI (13) y Teléfono (8)');
+    if (formData.dpi.length < 13) {
+      setError('El DPI debe tener 13 dígitos');
+      setSaving(false);
+      return;
+    }
+
+    if (formData.tel.length < 8) {
+      setError('El teléfono debe tener 8 dígitos');
       setSaving(false);
       return;
     }
@@ -65,13 +96,9 @@ export default function OnboardingPage() {
 
       await saveUserProfile({
         userId,
-        createdAt: new Date().toISOString(),
-        email: '',
-        nombres: formData.nombres,
-        apellidos: formData.apellidos,
-        dpi: formData.dpi,
-        tel: formData.tel,
-        edad: formData.edad,
+        createdAt: user?.createdAt || new Date().toISOString(),
+        email: user?.email || '',
+        ...formData,
       });
 
       await refreshUser();
@@ -114,23 +141,23 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
-                id="reg-nombres"
+                name="nombres"
                 placeholder="Nombres"
                 value={formData.nombres}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all"
-                style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                className={inputClass}
+                style={inputStyle}
               />
               <input
                 type="text"
-                id="reg-apellidos"
+                name="apellidos"
                 placeholder="Apellidos"
                 value={formData.apellidos}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all"
-                style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                className={inputClass}
+                style={inputStyle}
               />
             </div>
 
@@ -140,7 +167,7 @@ export default function OnboardingPage() {
               </label>
               <input
                 type="text"
-                id="reg-dpi"
+                name="dpi"
                 placeholder="0000 00000 0000"
                 maxLength={13}
                 value={formData.dpi}
@@ -149,8 +176,8 @@ export default function OnboardingPage() {
                   setFormData((prev) => ({ ...prev, dpi: value }));
                 }}
                 required
-                className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm font-mono transition-all"
-                style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                className={`${inputClass} font-mono`}
+                style={inputStyle}
               />
             </div>
 
@@ -161,7 +188,7 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="text"
-                  id="reg-tel"
+                  name="tel"
                   placeholder="0000 0000"
                   maxLength={8}
                   value={formData.tel}
@@ -170,23 +197,77 @@ export default function OnboardingPage() {
                     setFormData((prev) => ({ ...prev, tel: value }));
                   }}
                   required
-                  className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm font-mono transition-all"
-                  style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                  className={`${inputClass} font-mono`}
+                  style={inputStyle}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase ml-1" style={{ color: 'var(--color-muted)' }}>Edad</label>
+                <label className="text-[10px] font-black uppercase ml-1" style={{ color: 'var(--color-muted)' }}>
+                  Fecha de Nacimiento
+                </label>
                 <input
-                  type="number"
-                  id="reg-edad"
-                  placeholder="Edad"
-                  min="12"
-                  max="99"
-                  value={formData.edad}
+                  type="date"
+                  name="fechaNacimiento"
+                  value={formData.fechaNacimiento}
                   onChange={handleChange}
                   required
-                  className="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all"
-                  style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-border)', color: 'var(--color-text)' }}
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase ml-1" style={{ color: 'var(--color-muted)' }}>
+                Género
+              </label>
+              <select
+                name="genero"
+                value={formData.genero}
+                onChange={handleChange}
+                required
+                className={inputClass}
+                style={inputStyle}
+              >
+                <option value="">Selecciona</option>
+                {GENERO_OPTIONS.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase ml-1" style={{ color: 'var(--color-muted)' }}>
+                  Departamento
+                </label>
+                <select
+                  name="departamento"
+                  value={formData.departamento}
+                  onChange={handleChange}
+                  required
+                  className={inputClass}
+                  style={inputStyle}
+                >
+                  <option value="">Selecciona</option>
+                  {DEPARTAMENTOS_GT.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase ml-1" style={{ color: 'var(--color-muted)' }}>
+                  Municipio
+                </label>
+                <input
+                  type="text"
+                  name="municipio"
+                  placeholder="Tu municipio"
+                  value={formData.municipio}
+                  onChange={handleChange}
+                  required
+                  className={inputClass}
+                  style={inputStyle}
                 />
               </div>
             </div>

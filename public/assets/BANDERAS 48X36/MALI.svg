@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="a" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36">
+  <defs>
+    <style>
+      .b {
+        fill: #ffdb00;
+      }
+
+      .b, .c, .d {
+        fill-rule: evenodd;
+      }
+
+      .c {
+        fill: #01a616;
+      }
+
+      .d {
+        fill: #f30004;
+      }
+    </style>
+  </defs>
+  <polygon class="d" points="32.18 36.06 48.2 36 48.03 -.15 32 -.1 32.18 36.06"/>
+  <polygon class="c" points="-.06 36.16 16.15 36.11 15.97 -.04 -.05 0 -.06 36.16"/>
+  <polygon class="b" points="16.15 36.11 32.18 36.06 32 -.1 15.97 -.04 16.15 36.11"/>
+</svg>

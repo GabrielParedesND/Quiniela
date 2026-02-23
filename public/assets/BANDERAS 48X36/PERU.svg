@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="a" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36">
+  <defs>
+    <style>
+      .b {
+        fill: #f30004;
+        fill-rule: evenodd;
+      }
+
+      .c {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <path class="b" d="M-.03,36H15.97V.02H-.03v35.98H-.03ZM31.98,36h16.01V.02h-16.01v35.98Z"/>
+  <rect class="c" x="15.97" y=".02" width="16.01" height="35.98"/>
+</svg>

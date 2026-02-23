@@ -6,15 +6,26 @@ export interface UserProfile {
   apellidos: string;
   dpi: string;
   tel: string;
-  edad: string;
+  fechaNacimiento: string;
+  departamento: string;
+  municipio: string;
+  genero: string;
 }
 
-// Campos obligatorios para validar perfil completo
-const REQUIRED_FIELDS: (keyof UserProfile)[] = ['nombres', 'apellidos', 'dpi', 'tel', 'edad'];
+const REQUIRED_FIELDS: (keyof UserProfile)[] = [
+  'nombres',
+  'apellidos',
+  'dpi',
+  'tel',
+  'fechaNacimiento',
+  'departamento',
+  'municipio',
+  'genero',
+];
 
 export function isProfileComplete(profile: UserProfile | null): boolean {
   if (!profile) return false;
-  return REQUIRED_FIELDS.every(field => {
+  return REQUIRED_FIELDS.every((field) => {
     const value = profile[field];
     return value !== undefined && value !== null && value !== '';
   });
@@ -57,3 +68,28 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
   const data = await response.json();
   return data.profile;
 };
+
+export const DEPARTAMENTOS_GT = [
+  'Alta Verapaz',
+  'Baja Verapaz',
+  'Chimaltenango',
+  'Chiquimula',
+  'El Progreso',
+  'Escuintla',
+  'Guatemala',
+  'Huehuetenango',
+  'Izabal',
+  'Jalapa',
+  'Jutiapa',
+  'Petén',
+  'Quetzaltenango',
+  'Quiché',
+  'Retalhuleu',
+  'Sacatepéquez',
+  'San Marcos',
+  'Santa Rosa',
+  'Sololá',
+  'Suchitepéquez',
+  'Totonicapán',
+  'Zacapa',
+] as const;

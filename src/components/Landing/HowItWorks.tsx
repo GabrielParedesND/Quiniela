@@ -115,7 +115,9 @@ export default function HowItWorks() {
           {steps.map((step, index) => (
             <div
               key={index}
-              ref={(el) => (cardRefs.current[index] = el)}
+              ref={(el) => {
+                cardRefs.current[index] = el;
+              }}
               data-index={index}
               className={`bg-bg p-6 rounded-xl border-2 border-border hover:border-primary transition-all duration-500 hover:shadow-lg group ${
                 visibleCards.includes(index)

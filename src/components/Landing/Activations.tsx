@@ -79,7 +79,9 @@ export default function Activations() {
           {activations.map((activation, index) => (
             <div
               key={index}
-              ref={(el) => (cardRefs.current[index] = el)}
+              ref={(el) => {
+                cardRefs.current[index] = el;
+              }}
               data-index={index}
               className={`relative bg-surface p-8 rounded-xl border-2 border-border hover:border-primary transition-all duration-500 hover:shadow-2xl group overflow-hidden ${
                 visibleCards.includes(index)

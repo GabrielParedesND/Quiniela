@@ -6,6 +6,7 @@ import { isAuthenticated } from '@/lib/auth/cognito';
 import { signIn } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
 import { isProfileComplete } from '@/lib/db/users';
+import { brandAssets } from '@/lib/assets';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,10 +60,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--color-bg)' }}>
       <section className="fade-in max-w-md w-full">
         <div className="p-8 rounded-2xl shadow-xl text-center border" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <div className="text-6xl mb-4">🌍</div>
-          <h2 className="text-2xl font-bold mb-2 tracking-tighter uppercase italic" style={{ color: 'var(--color-text)' }}>
-            Quiniela Mundialista
-          </h2>
+          <img src={brandAssets.logos.large} alt="Logo" className="w-64 h-auto mx-auto mb-6" />
           <p className="mb-8 text-sm" style={{ color: 'var(--color-muted)' }}>Ingresa para gestionar tus pronósticos</p>
 
           <div className="space-y-3 mb-6">
@@ -72,7 +70,7 @@ export default function LoginPage() {
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-surface2)' }}
             >
               <img
-                src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png"
+                src={brandAssets.social.google}
                 className="w-5 h-5"
                 alt="Google"
               />
@@ -83,9 +81,11 @@ export default function LoginPage() {
               className="w-full flex items-center justify-center space-x-3 py-3 rounded-xl font-semibold text-sm border-2 transition-all hover:shadow-md"
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-surface2)' }}
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-primary)' }}>
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
+              <img
+                src={brandAssets.social.facebook}
+                className="w-5 h-5"
+                alt="Facebook"
+              />
               <span>Continuar con Facebook</span>
             </button>
           </div>

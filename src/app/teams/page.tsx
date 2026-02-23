@@ -9,7 +9,7 @@ import AppShell from '@/components/AppShell';
 import LoadingContent from '@/components/LoadingContent';
 import PageHeader from '@/components/PageHeader';
 import TabSelector from '@/components/TabSelector';
-import { teams, teamStandingsByGroup } from '@/lib/mock';
+import { teams, computeTeamStandings } from '@/lib/mock';
 
 export default function TeamsPage() {
   const router = useRouter();
@@ -45,7 +45,7 @@ export default function TeamsPage() {
     );
   }
 
-  const standings = teamStandingsByGroup[activeGroup] || [];
+  const standings = computeTeamStandings()[activeGroup] || [];
   const tabs = (['A', 'B', 'C', 'D'] as const).map((g) => ({ value: g, label: `Grupo ${g}` }));
 
   return (

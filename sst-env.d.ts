@@ -6,6 +6,10 @@
 
 declare module "sst" {
   export interface Resource {
+    "ActivityLogsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
     "QuinielaUserPool": {
       "id": string
       "type": "sst.aws.CognitoUserPool"

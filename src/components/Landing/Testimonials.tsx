@@ -85,7 +85,9 @@ export default function Testimonials() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              ref={(el) => (cardRefs.current[index] = el)}
+              ref={(el) => {
+                cardRefs.current[index] = el;
+              }}
               data-index={index}
               className={`bg-bg p-6 rounded-xl border-2 border-border hover:border-primary transition-all duration-500 ${
                 visibleCards.includes(index)

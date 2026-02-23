@@ -38,17 +38,15 @@ export default function ResultCard({
       style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
     >
       <div className="flex items-center space-x-4">
-        <div className="flex -space-x-2">
+        <div className="flex space-x-3">
           <img
             src={teamA.flagUrl}
-            className="w-8 h-5 object-cover rounded shadow-sm border-2"
-            style={{ borderColor: 'var(--color-surface)' }}
+            className="w-8 h-6"
             alt={teamA.short}
           />
           <img
             src={teamB.flagUrl}
-            className="w-8 h-5 object-cover rounded shadow-sm border-2"
-            style={{ borderColor: 'var(--color-surface)' }}
+            className="w-8 h-6"
             alt={teamB.short}
           />
         </div>

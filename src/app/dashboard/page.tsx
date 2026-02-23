@@ -10,7 +10,8 @@ import LoadingContent from '@/components/LoadingContent';
 import PromoBanner from '@/components/PromoBanner';
 import UserCard from '@/components/UserCard';
 import NavigationCard from '@/components/NavigationCard';
-import { matches, mockUserPredictions } from '@/lib/mock';
+import { brandAssets } from '@/lib/assets';
+import { loadPredictions, computePoints } from '@/lib/demo';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -21,39 +22,21 @@ export default function DashboardPage() {
     const checkAccess = async () => {
       if (loading) return;
 
-      // Verificar si hay sesión activa
       const authenticated = await isAuthenticated();
       if (!authenticated) {
         router.push('/');
         return;
       }
 
-      // Si hay sesión pero no hay user cargado aún, esperar
       if (!user) return;
 
-      // Validar si el perfil está completo
       if (!isProfileComplete(user)) {
         router.push('/onboarding');
         return;
       }
 
-      // Calcular puntos mock
-      let totalPoints = 0;
-      const playedMatches = matches.filter((m) => m.status === 'played');
-      playedMatches.forEach((m) => {
-        const pred = mockUserPredictions[m.id];
-        if (!pred) return;
-        const pA = parseInt(pred.a as string);
-        const pB = parseInt(pred.b as string);
-        if (pA === m.scoreA && pB === m.scoreB) totalPoints += 5;
-        else if (
-          (pA > pB && m.scoreA! > m.scoreB!) ||
-          (pB > pA && m.scoreB! > m.scoreA!) ||
-          (pA === pB && m.scoreA === m.scoreB)
-        )
-          totalPoints += 3;
-      });
-      setPoints(totalPoints);
+      const predictions = loadPredictions();
+      setPoints(computePoints(predictions));
     };
 
     checkAccess();
@@ -102,27 +85,33 @@ export default function DashboardPage() {
           sponsors={[
             { 
               name: 'Copa Mundial 2026', 
-              tier: 'master'
+              tier: 'master',
+              logo: brandAssets.sponsors.master[0]
             },
             { 
               name: 'Coca-Cola', 
-              tier: 'gold'
+              tier: 'gold',
+              logo: brandAssets.sponsors.gold[0]
             },
             { 
               name: 'Adidas', 
-              tier: 'gold'
+              tier: 'gold',
+              logo: brandAssets.sponsors.gold[1]
             },
             { 
               name: 'Visa', 
-              tier: 'silver'
+              tier: 'silver',
+              logo: brandAssets.sponsors.silver[0]
             },
             { 
               name: 'McDonald\'s', 
-              tier: 'silver'
+              tier: 'silver',
+              logo: brandAssets.sponsors.silver[1]
             },
             { 
               name: 'Hyundai', 
-              tier: 'silver'
+              tier: 'silver',
+              logo: brandAssets.sponsors.silver[2]
             }
           ]}
         />

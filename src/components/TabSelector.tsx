@@ -13,7 +13,7 @@ export default function TabSelector<T extends string | number>({
 }: TabSelectorProps<T>) {
   return (
     <div
-      className="rounded-2xl shadow-sm p-1 border sticky top-36 z-40"
+      className="rounded-2xl shadow-sm p-1 border"
       style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
     >
       <div className="flex overflow-x-auto items-center space-x-6 px-4 py-3 hide-scrollbar">

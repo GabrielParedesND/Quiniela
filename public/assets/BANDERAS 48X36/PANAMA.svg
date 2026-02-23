@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="a" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36">
+  <defs>
+    <style>
+      .b {
+        fill-rule: evenodd;
+      }
+
+      .b, .c {
+        fill: #0132bf;
+      }
+
+      .d {
+        fill: #fff;
+      }
+
+      .e {
+        fill: #f30004;
+      }
+    </style>
+  </defs>
+  <rect class="d" x="0" y=".01" width="47.99" height="35.98"/>
+  <rect class="e" x="24.03" y=".01" width="23.97" height="17.99"/>
+  <polygon class="e" points="38.5 26.03 37.49 22.93 36.48 26.03 33.21 26.03 35.86 27.95 34.85 31.06 37.49 29.14 40.13 31.06 39.12 27.95 41.77 26.03 38.5 26.03"/>
+  <polygon class="b" points="7.87 13.07 10.51 11.15 13.15 13.07 12.14 9.97 14.79 8.05 11.52 8.05 10.51 4.94 9.5 8.05 6.23 8.05 8.87 9.97 7.87 13.07"/>
+  <rect class="c" x="0" y="18" width="24.03" height="17.99"/>
+</svg>
