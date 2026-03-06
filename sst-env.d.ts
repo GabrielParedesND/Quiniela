@@ -10,6 +10,22 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Dynamo"
     }
+    "BrandingAssetsBucket": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
+    "BrandingConfigTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "MatchesTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "PredictionsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
     "QuinielaUserPool": {
       "id": string
       "type": "sst.aws.CognitoUserPool"
@@ -22,6 +38,22 @@ declare module "sst" {
     "QuinielaWeb": {
       "type": "sst.aws.Nextjs"
       "url": string
+    }
+    "RoundsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "ScoreAggregateTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "TeamsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "TournamentsTable": {
+      "name": string
+      "type": "sst.aws.Dynamo"
     }
     "UsersTable": {
       "name": string

@@ -3,10 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getUserId } from '@/lib/auth/cognito';
-import { saveUserProfile, isProfileComplete, DEPARTAMENTOS_GT } from '@/lib/db/users';
+import {
+  saveUserProfile,
+  isProfileComplete,
+  DEPARTAMENTOS_GT,
+  MUNICIPIOS_GT_POR_DEPARTAMENTO,
+  GENERO_OPTIONS,
+  getDepartamentoCanonico,
+  getMunicipioCanonico,
+  validateAndNormalizeProfileFields,
+} from '@/lib/db/users';
+import { getRandomProfileAvatar, isProfileAvatarOption } from '@/lib/assets';
 import { useUser } from '@/contexts/UserContext';
-
-const GENERO_OPTIONS = ['Masculino', 'Femenino', 'Otro', 'Prefiero no decir'];
+import { useBranding } from '@/contexts/BrandingContext';
 
 const inputClass =
   'w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-opacity-50 outline-none text-sm transition-all';
@@ -20,6 +29,7 @@ const inputStyle = {
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, loading: userLoading, refreshUser } = useUser();
+  const { config } = useBranding();
   const [formData, setFormData] = useState({
     nombres: '',
     apellidos: '',
@@ -33,6 +43,9 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const municipiosDisponibles = formData.departamento
+    ? MUNICIPIOS_GT_POR_DEPARTAMENTO[formData.departamento as keyof typeof MUNICIPIOS_GT_POR_DEPARTAMENTO] || []
+    : [];
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -48,14 +61,19 @@ export default function OnboardingPage() {
       }
 
       if (user) {
+        const departamentoCanonico = user.departamento ? getDepartamentoCanonico(user.departamento) : '';
+        const municipioCanonico = user.municipio
+          ? getMunicipioCanonico(departamentoCanonico, user.municipio)
+          : '';
+
         setFormData((prev) => ({
           nombres: user.nombres || prev.nombres,
           apellidos: user.apellidos || prev.apellidos,
           dpi: user.dpi || prev.dpi,
           tel: user.tel || prev.tel,
           fechaNacimiento: user.fechaNacimiento || prev.fechaNacimiento,
-          departamento: user.departamento || prev.departamento,
-          municipio: user.municipio || prev.municipio,
+          departamento: departamentoCanonico || prev.departamento,
+          municipio: municipioCanonico || '',
           genero: user.genero || prev.genero,
         }));
       }
@@ -70,6 +88,14 @@ export default function OnboardingPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'departamento') {
+      setFormData((prev) => ({
+        ...prev,
+        departamento: value,
+        municipio: '',
+      }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -78,14 +104,9 @@ export default function OnboardingPage() {
     setSaving(true);
     setError('');
 
-    if (formData.dpi.length < 13) {
-      setError('El DPI debe tener 13 dígitos');
-      setSaving(false);
-      return;
-    }
-
-    if (formData.tel.length < 8) {
-      setError('El teléfono debe tener 8 dígitos');
+    const validation = validateAndNormalizeProfileFields(formData);
+    if (!validation.valid || !validation.normalized) {
+      setError(validation.error || 'Revisa la información ingresada');
       setSaving(false);
       return;
     }
@@ -98,7 +119,10 @@ export default function OnboardingPage() {
         userId,
         createdAt: user?.createdAt || new Date().toISOString(),
         email: user?.email || '',
-        ...formData,
+        avatar: user?.avatar && isProfileAvatarOption(user.avatar)
+          ? user.avatar
+          : getRandomProfileAvatar(),
+        ...validation.normalized,
       });
 
       await refreshUser();
@@ -112,14 +136,26 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)' }}>
+      <div
+        className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundColor: 'var(--color-bg)',
+          backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url('${config.assets.backgrounds.dashboard}')`,
+        }}
+      >
         <p style={{ color: 'var(--color-muted)' }}>Cargando...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--color-bg)' }}>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundColor: 'var(--color-bg)',
+        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url('${config.assets.backgrounds.dashboard}')`,
+      }}
+    >
       <section className="fade-in max-w-md w-full mt-6">
         <div className="p-6 rounded-2xl shadow-xl border" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
           <div className="mb-6">
@@ -259,16 +295,24 @@ export default function OnboardingPage() {
                 <label className="text-[10px] font-black uppercase ml-1" style={{ color: 'var(--color-muted)' }}>
                   Municipio
                 </label>
-                <input
-                  type="text"
+                <select
                   name="municipio"
-                  placeholder="Tu municipio"
                   value={formData.municipio}
                   onChange={handleChange}
                   required
+                  disabled={!formData.departamento}
                   className={inputClass}
                   style={inputStyle}
-                />
+                >
+                  <option value="">
+                    {formData.departamento ? 'Selecciona' : 'Primero selecciona departamento'}
+                  </option>
+                  {municipiosDisponibles.map((municipio) => (
+                    <option key={municipio} value={municipio}>
+                      {municipio}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

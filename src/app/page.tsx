@@ -6,11 +6,12 @@ import { isAuthenticated } from '@/lib/auth/cognito';
 import { signIn } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
 import { isProfileComplete } from '@/lib/db/users';
-import { brandAssets } from '@/lib/assets';
+import { useBranding } from '@/contexts/BrandingContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { user, loading: userLoading, refreshUser } = useUser();
+  const { config } = useBranding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -57,10 +58,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--color-bg)' }}>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundColor: 'var(--color-bg)',
+        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url('${config.assets.backgrounds.dashboard}')`,
+      }}
+    >
       <section className="fade-in max-w-md w-full">
         <div className="p-8 rounded-2xl shadow-xl text-center border" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
-          <img src={brandAssets.logos.large} alt="Logo" className="w-64 h-auto mx-auto mb-6" />
+          <img src={config.assets.logos.large} alt="Logo" className="w-64 h-auto mx-auto mb-6" />
           <p className="mb-8 text-sm" style={{ color: 'var(--color-muted)' }}>Ingresa para gestionar tus pronósticos</p>
 
           <div className="space-y-3 mb-6">
@@ -70,7 +77,7 @@ export default function LoginPage() {
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-surface2)' }}
             >
               <img
-                src={brandAssets.social.google}
+                src={config.assets.social.google}
                 className="w-5 h-5"
                 alt="Google"
               />
@@ -82,7 +89,7 @@ export default function LoginPage() {
               style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-surface2)' }}
             >
               <img
-                src={brandAssets.social.facebook}
+                src={config.assets.social.facebook}
                 className="w-5 h-5"
                 alt="Facebook"
               />

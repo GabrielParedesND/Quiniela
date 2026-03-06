@@ -5,6 +5,7 @@ import {
   CognitoUserAttribute,
 } from 'amazon-cognito-identity-js';
 import { logActivity } from '@/lib/logger/activity';
+import { DEMO_DEFAULT_USER_ID, DEMO_STORAGE_KEYS, IS_DEMO_MODE } from '@/lib/demo-mode';
 
 let userPool: CognitoUserPool | null = null;
 
@@ -19,6 +20,21 @@ const getUserPool = () => {
   return userPool;
 };
 
+const setDemoSession = (email: string): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(
+    DEMO_STORAGE_KEYS.session,
+    JSON.stringify({ email, loggedAt: new Date().toISOString() })
+  );
+  localStorage.setItem(DEMO_STORAGE_KEYS.userId, DEMO_DEFAULT_USER_ID);
+};
+
+const clearDemoSession = (): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(DEMO_STORAGE_KEYS.session);
+  localStorage.removeItem(DEMO_STORAGE_KEYS.userId);
+};
+
 export interface SignUpParams {
   email: string;
   password: string;
@@ -31,6 +47,13 @@ export interface SignInParams {
 
 export const signUp = async (params: SignUpParams): Promise<any> => {
   const { email, password } = params;
+
+  if (IS_DEMO_MODE) {
+    if (!email || !password) {
+      throw new Error('Email y contraseña son requeridos');
+    }
+    return { userSub: DEMO_DEFAULT_USER_ID, userConfirmed: false };
+  }
 
   const attributeList = [
     new CognitoUserAttribute({ Name: 'email', Value: email }),
@@ -58,6 +81,11 @@ export const signUp = async (params: SignUpParams): Promise<any> => {
 };
 
 export const confirmSignUp = async (email: string, code: string): Promise<any> => {
+  if (IS_DEMO_MODE) {
+    if (!email || !code) throw new Error('Email y código son requeridos');
+    return 'SUCCESS';
+  }
+
   const userData = {
     Username: email,
     Pool: getUserPool(),
@@ -77,6 +105,11 @@ export const confirmSignUp = async (email: string, code: string): Promise<any> =
 };
 
 export const resendConfirmationCode = async (email: string): Promise<any> => {
+  if (IS_DEMO_MODE) {
+    if (!email) throw new Error('Email es requerido');
+    return 'SUCCESS';
+  }
+
   const userData = {
     Username: email,
     Pool: getUserPool(),
@@ -97,6 +130,20 @@ export const resendConfirmationCode = async (email: string): Promise<any> => {
 
 export const signIn = async (params: SignInParams): Promise<any> => {
   const { email, password } = params;
+
+  if (IS_DEMO_MODE) {
+    if (!email || !password) {
+      throw new Error('Email y contraseña son requeridos');
+    }
+    setDemoSession(email);
+    await logActivity({
+      userId: DEMO_DEFAULT_USER_ID,
+      email,
+      activityType: 'LOGIN_SUCCESS',
+      metadata: { mode: 'demo' },
+    });
+    return { demo: true, email };
+  }
 
   const authenticationDetails = new AuthenticationDetails({
     Username: email,
@@ -134,6 +181,11 @@ export const signIn = async (params: SignInParams): Promise<any> => {
 };
 
 export const signOut = async (): Promise<void> => {
+  if (IS_DEMO_MODE) {
+    clearDemoSession();
+    return;
+  }
+
   const cognitoUser = getUserPool().getCurrentUser();
   if (cognitoUser) {
     const email = cognitoUser.getUsername();
@@ -146,10 +198,23 @@ export const signOut = async (): Promise<void> => {
 };
 
 export const getCurrentUser = (): CognitoUser | null => {
+  if (IS_DEMO_MODE) return null;
   return getUserPool().getCurrentUser();
 };
 
 export const getUserAttributes = async (): Promise<any> => {
+  if (IS_DEMO_MODE) {
+    if (typeof window === 'undefined') return null;
+    const raw = localStorage.getItem(DEMO_STORAGE_KEYS.session);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw) as { email?: string };
+      return { email: parsed.email || 'demo@quiniela.local' };
+    } catch {
+      return { email: 'demo@quiniela.local' };
+    }
+  }
+
   const cognitoUser = getCurrentUser();
   
   if (!cognitoUser) {
@@ -181,6 +246,11 @@ export const getUserAttributes = async (): Promise<any> => {
 };
 
 export const getUserId = async (): Promise<string | null> => {
+  if (IS_DEMO_MODE) {
+    if (typeof window === 'undefined') return DEMO_DEFAULT_USER_ID;
+    return localStorage.getItem(DEMO_STORAGE_KEYS.userId) || DEMO_DEFAULT_USER_ID;
+  }
+
   const cognitoUser = getCurrentUser();
   
   if (!cognitoUser) {
@@ -201,6 +271,11 @@ export const getUserId = async (): Promise<string | null> => {
 };
 
 export const isAuthenticated = async (): Promise<boolean> => {
+  if (IS_DEMO_MODE) {
+    if (typeof window === 'undefined') return true;
+    return Boolean(localStorage.getItem(DEMO_STORAGE_KEYS.session));
+  }
+
   const cognitoUser = getCurrentUser();
   
   if (!cognitoUser) {
@@ -219,6 +294,11 @@ export const isAuthenticated = async (): Promise<boolean> => {
 };
 
 export const forgotPassword = async (email: string): Promise<any> => {
+  if (IS_DEMO_MODE) {
+    if (!email) throw new Error('Email es requerido');
+    return 'SUCCESS';
+  }
+
   const userData = {
     Username: email,
     Pool: getUserPool(),
@@ -247,6 +327,13 @@ export const confirmForgotPassword = async (
   code: string,
   newPassword: string
 ): Promise<any> => {
+  if (IS_DEMO_MODE) {
+    if (!email || !code || !newPassword) {
+      throw new Error('Completa todos los campos requeridos');
+    }
+    return 'Password reset successful';
+  }
+
   const userData = {
     Username: email,
     Pool: getUserPool(),

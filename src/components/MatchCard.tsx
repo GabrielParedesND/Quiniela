@@ -59,6 +59,8 @@ export default function MatchCard({
         <div className="flex items-center space-x-2 w-1/3 justify-center">
           <input
             type="number"
+            min={0}
+            step={1}
             value={predictionA}
             onChange={(e) => onPredictionChange?.('a', e.target.value)}
             readOnly={isLocked}
@@ -75,6 +77,8 @@ export default function MatchCard({
           </span>
           <input
             type="number"
+            min={0}
+            step={1}
             value={predictionB}
             onChange={(e) => onPredictionChange?.('b', e.target.value)}
             readOnly={isLocked}

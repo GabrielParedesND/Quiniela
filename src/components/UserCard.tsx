@@ -1,6 +1,6 @@
 'use client';
 
-import { brandAssets } from '@/lib/assets';
+import { useBranding } from '@/contexts/BrandingContext';
 
 interface UserCardProps {
   fullName: string;
@@ -10,13 +10,15 @@ interface UserCardProps {
 }
 
 export default function UserCard({ fullName, avatarUrl, points, onViewResults }: UserCardProps) {
+  const { config } = useBranding();
+
   return (
     <div
       className="rounded-3xl border shadow-sm overflow-hidden relative"
       style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
     >
       <img
-        src={brandAssets.backgrounds.userCard}
+        src={config.assets.backgrounds.userCard}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
@@ -25,7 +27,7 @@ export default function UserCard({ fullName, avatarUrl, points, onViewResults }:
       <div className="relative z-10 p-6 flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 rounded-full border-2 overflow-hidden flex items-center justify-center shadow-inner" style={{ backgroundColor: 'var(--color-surface2)', borderColor: 'var(--color-primary)' }}>
-            <img src={avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
+            <img src={avatarUrl} className="w-full h-full object-contain p-1" alt="Avatar" />
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase mb-1 tracking-widest" style={{ color: 'var(--color-muted)' }}>

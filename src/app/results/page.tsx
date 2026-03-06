@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth/cognito';
+import { getUserId, isAuthenticated } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
 import { isProfileComplete } from '@/lib/db/users';
 import AppShell from '@/components/AppShell';
@@ -10,17 +10,28 @@ import LoadingContent from '@/components/LoadingContent';
 import PageHeader from '@/components/PageHeader';
 import ResultCard from '@/components/ResultCard';
 import RankingTable from '@/components/RankingTable';
-import { matches, teams, rankingUsers, getPhase } from '@/lib/mock';
-import { brandAssets } from '@/lib/assets';
-import { loadPredictions, computePoints, computePointsByJornada } from '@/lib/demo';
+import {
+  fetchQuinielaSnapshot,
+  getPhase,
+  Match,
+  RankingUser,
+  Team,
+} from '@/lib/db/quiniela';
+import { useBranding } from '@/contexts/BrandingContext';
 
 export default function ResultsPage() {
   const router = useRouter();
   const { user, loading } = useUser();
+  const { config } = useBranding();
   const [points, setPoints] = useState(0);
   const [pointsByJornada, setPointsByJornada] = useState([0, 0, 0]);
   const [predictions, setPredictions] = useState<Record<number, { a: string; b: string }>>({});
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [rankingUsers, setRankingUsers] = useState<RankingUser[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [snapshotLoading, setSnapshotLoading] = useState(true);
+  const [snapshotError, setSnapshotError] = useState('');
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -39,20 +50,91 @@ export default function ResultsPage() {
         return;
       }
 
-      const stored = loadPredictions();
-      setPredictions(stored);
-      setPoints(computePoints(stored));
-      setPointsByJornada(computePointsByJornada(stored));
-      setInitialized(true);
+      try {
+        setSnapshotLoading(true);
+        setSnapshotError('');
+        const userId = await getUserId();
+        const snapshot = await fetchQuinielaSnapshot(userId);
+        setPredictions(snapshot.userPredictions);
+        setPoints(snapshot.points);
+        setPointsByJornada(snapshot.pointsByJornada);
+        setTeams(snapshot.teams);
+        setMatches(snapshot.matches);
+        setRankingUsers(snapshot.rankingUsers);
+        setInitialized(true);
+      } catch (error) {
+        console.error('Error loading results snapshot:', error);
+        setSnapshotError('No se pudo cargar la información de resultados');
+      } finally {
+        setSnapshotLoading(false);
+      }
     };
 
     checkAccess();
   }, [user, loading, router]);
 
-  if (loading || !user || !initialized) {
+  if (loading || !user) {
     return (
       <AppShell>
         <LoadingContent />
+      </AppShell>
+    );
+  }
+
+  if (snapshotLoading || !initialized) {
+    return (
+      <AppShell>
+        <section className="fade-in space-y-6 pb-10">
+          <PageHeader title="Mi Rendimiento" showBackButton backTo="/dashboard" />
+          <div className="p-6 rounded-3xl border shadow-sm" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+            <div className="h-3 w-28 rounded skeleton mb-6" />
+            <div className="flex items-end justify-center h-32 space-x-8 px-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="w-12 h-full rounded-lg skeleton" />
+              ))}
+            </div>
+            <div className="flex justify-center space-x-8 mt-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="h-2.5 w-12 rounded skeleton" />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="rounded-2xl border p-4" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-7 rounded-sm skeleton" />
+                    <div className="h-3 w-14 rounded skeleton" />
+                  </div>
+                  <div className="w-16 h-7 rounded-lg skeleton" />
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-14 rounded skeleton" />
+                    <div className="w-10 h-7 rounded-sm skeleton" />
+                  </div>
+                </div>
+                <div className="h-2.5 w-28 rounded skeleton mt-3" />
+              </div>
+            ))}
+          </div>
+          <div className="rounded-3xl p-6 border" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+            <div className="h-4 w-36 rounded skeleton mb-3 ml-auto" />
+            <div className="h-10 w-40 rounded-full skeleton ml-auto" />
+          </div>
+        </section>
+      </AppShell>
+    );
+  }
+
+  if (snapshotError) {
+    return (
+      <AppShell>
+        <section className="fade-in space-y-4">
+          <PageHeader title="Mi Rendimiento" showBackButton backTo="/dashboard" />
+          <div className="p-4 rounded-2xl border text-sm font-bold" style={{ borderColor: 'var(--color-danger)', color: 'var(--color-danger)', backgroundColor: 'var(--color-surface)' }}>
+            {snapshotError}
+          </div>
+        </section>
       </AppShell>
     );
   }
@@ -110,8 +192,9 @@ export default function ResultsPage() {
           </h3>
           <div className="rounded-3xl border shadow-sm overflow-hidden p-2 space-y-2" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
             {playedMatches.map((m) => {
-              const teamA = teams.find((t) => t.id === m.teamAId)!;
-              const teamB = teams.find((t) => t.id === m.teamBId)!;
+              const teamA = teams.find((t) => t.id === m.teamAId);
+              const teamB = teams.find((t) => t.id === m.teamBId);
+              if (!teamA || !teamB) return null;
               const pred = predictions[m.id] || { a: '-', b: '-' };
               let pts = 0;
               let desc = 'Sin puntos';
@@ -154,7 +237,7 @@ export default function ResultsPage() {
             <div 
               className="absolute inset-0 opacity-30"
               style={{
-                backgroundImage: `url('${brandAssets.cardBackgrounds.blue}')`,
+                backgroundImage: `url('${config.assets.cardBackgrounds.blue}')`,
                 backgroundSize: 'cover',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'left top',

@@ -1,6 +1,5 @@
-import { matches, defaultPredictions } from './mock';
-
-const PREDICTIONS_KEY = 'quiniela_predictions';
+import { DEMO_STORAGE_KEYS } from '@/lib/demo-mode';
+import { defaultPredictions, matches } from './mock';
 
 type Predictions = Record<number, { a: string; b: string }>;
 
@@ -17,23 +16,23 @@ function toStringPredictions(
 export function loadPredictions(): Predictions {
   if (typeof window === 'undefined') return {};
 
-  const stored = localStorage.getItem(PREDICTIONS_KEY);
+  const stored = localStorage.getItem(DEMO_STORAGE_KEYS.predictions);
   if (stored) {
     try {
       return JSON.parse(stored) as Predictions;
     } catch {
-      localStorage.removeItem(PREDICTIONS_KEY);
+      localStorage.removeItem(DEMO_STORAGE_KEYS.predictions);
     }
   }
 
   const initial = toStringPredictions(defaultPredictions);
-  localStorage.setItem(PREDICTIONS_KEY, JSON.stringify(initial));
+  localStorage.setItem(DEMO_STORAGE_KEYS.predictions, JSON.stringify(initial));
   return initial;
 }
 
 export function savePredictions(predictions: Predictions): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(PREDICTIONS_KEY, JSON.stringify(predictions));
+  localStorage.setItem(DEMO_STORAGE_KEYS.predictions, JSON.stringify(predictions));
 }
 
 export function computePoints(predictions: Predictions): number {

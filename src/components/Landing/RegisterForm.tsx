@@ -43,18 +43,21 @@ export default function RegisterForm() {
   const isValid = formData.name && formData.phone && formData.email && formData.terms;
 
   return (
-    <section id="registro" className="py-20 bg-bg">
+    <section id="registro" className="py-20 bg-white">
       <div className="max-w-2xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-black text-text mb-4">
+          <span className="inline-flex items-center rounded-full border border-emerald-300/40 bg-emerald-50 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-4">
+            Registro exprés
+          </span>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             ¡Regístrate Ahora!
           </h2>
-          <p className="text-xl text-muted">
+          <p className="text-xl text-slate-600">
             Solo toma un minuto. Empieza a participar hoy mismo
           </p>
         </div>
 
-        <div className="bg-surface p-8 rounded-xl border-2 border-border shadow-xl">
+        <div className="bg-gradient-to-b from-slate-50 to-white p-8 rounded-2xl border border-slate-200 shadow-xl">
           {formState === 'success' ? (
             <div className="text-center py-12">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-6">
@@ -62,14 +65,14 @@ export default function RegisterForm() {
                   <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-text mb-3">¡Registro Exitoso!</h3>
-              <p className="text-muted">Redirigiendo a tu dashboard...</p>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">¡Registro Exitoso!</h3>
+              <p className="text-slate-600">Redirigiendo a tu dashboard...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name */}
               <div>
-                <label htmlFor="name" className="block text-sm font-bold text-text mb-2">
+                <label htmlFor="name" className="block text-sm font-bold text-slate-900 mb-2">
                   Nombre Completo *
                 </label>
                 <input
@@ -79,14 +82,14 @@ export default function RegisterForm() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-bg border-2 border-border rounded-lg text-text focus:border-primary focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 focus:border-primary focus:outline-none transition-colors"
                   placeholder="Ingresa tu nombre completo"
                 />
               </div>
 
               {/* DPI */}
               <div>
-                <label htmlFor="dpi" className="block text-sm font-bold text-text mb-2">
+                <label htmlFor="dpi" className="block text-sm font-bold text-slate-900 mb-2">
                   DPI (Opcional)
                 </label>
                 <input
@@ -95,14 +98,14 @@ export default function RegisterForm() {
                   name="dpi"
                   value={formData.dpi}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-bg border-2 border-border rounded-lg text-text focus:border-primary focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 focus:border-primary focus:outline-none transition-colors"
                   placeholder="1234 56789 0101"
                 />
               </div>
 
               {/* Phone */}
               <div>
-                <label htmlFor="phone" className="block text-sm font-bold text-text mb-2">
+                <label htmlFor="phone" className="block text-sm font-bold text-slate-900 mb-2">
                   Teléfono *
                 </label>
                 <input
@@ -112,14 +115,14 @@ export default function RegisterForm() {
                   value={formData.phone}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-bg border-2 border-border rounded-lg text-text focus:border-primary focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 focus:border-primary focus:outline-none transition-colors"
                   placeholder="1234-5678"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-bold text-text mb-2">
+                <label htmlFor="email" className="block text-sm font-bold text-slate-900 mb-2">
                   Correo Electrónico *
                 </label>
                 <input
@@ -129,7 +132,7 @@ export default function RegisterForm() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-bg border-2 border-border rounded-lg text-text focus:border-primary focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 focus:border-primary focus:outline-none transition-colors"
                   placeholder="tu@email.com"
                 />
               </div>
@@ -145,7 +148,7 @@ export default function RegisterForm() {
                   required
                   className="mt-1 w-5 h-5 accent-primary"
                 />
-                <label htmlFor="terms" className="text-sm text-muted">
+                <label htmlFor="terms" className="text-sm text-slate-600">
                   Acepto los{' '}
                   <a href="/terminos" className="text-primary hover:underline">
                     términos y condiciones
@@ -162,7 +165,7 @@ export default function RegisterForm() {
               <button
                 type="submit"
                 disabled={!isValid || formState === 'loading'}
-                className="w-full bg-primary text-primaryText py-4 rounded-lg font-bold text-lg hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-primary to-accent text-white py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {formState === 'loading' ? (
                   <>
@@ -177,7 +180,7 @@ export default function RegisterForm() {
                 )}
               </button>
 
-              <p className="text-xs text-muted text-center">
+              <p className="text-xs text-slate-500 text-center">
                 * Campos obligatorios. Tu información está protegida y no será compartida con terceros.
               </p>
             </form>

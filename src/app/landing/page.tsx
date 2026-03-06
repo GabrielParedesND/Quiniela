@@ -8,11 +8,11 @@ import Testimonials from '@/components/Landing/Testimonials';
 import Footer from '@/components/Landing/Footer';
 
 export const metadata: Metadata = {
-  title: 'Quiniela Mundialista 2026 | El Gallo Más Gallo x Nuestro Diario',
-  description: 'Participa en la Quiniela Mundialista 2026 y gana increíbles premios. Pronostica resultados, acumula puntos y compite por el gran premio.',
+  title: 'Quiniela Mundialista 2026 | Pronósticos y Ranking',
+  description: 'Participa en la Quiniela Mundialista 2026. Pronostica resultados, acumula puntos y compite en el ranking.',
   openGraph: {
-    title: 'Quiniela Mundialista 2026 | El Gallo Más Gallo',
-    description: 'Participa, pronostica y gana con la Quiniela Mundialista 2026',
+    title: 'Quiniela Mundialista 2026 | Pronósticos y Ranking',
+    description: 'Participa, pronostica y compite con la Quiniela Mundialista 2026',
     type: 'website',
   },
 };
@@ -40,7 +40,7 @@ export default function LandingPage() {
                 name: '¿Cómo participo en la Quiniela Mundialista?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Compra el diario, escanea el QR, regístrate una sola vez y pronostica los resultados antes de cada partido.',
+                  text: 'Ingresa a la plataforma, inicia sesión y pronostica los resultados antes de cada partido.',
                 },
               },
               {
@@ -48,7 +48,7 @@ export default function LandingPage() {
                 name: '¿Cuántos puntos gano por acierto?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Ganas 5 puntos por resultado correcto, +3 por marcador exacto y +2 en partidos destacados El Gallo.',
+                  text: 'Ganas 5 puntos por resultado correcto, +3 por marcador exacto y +2 en partidos destacados.',
                 },
               },
             ],

@@ -1,13 +1,17 @@
 'use client';
 
 import { useEffect } from 'react';
-import { loadTheme, applyTheme } from '@/lib/theme/theme';
+import { applyTheme } from '@/lib/theme/theme';
+import { useBranding } from '@/contexts/BrandingContext';
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const { config, loading } = useBranding();
+
   useEffect(() => {
-    const theme = loadTheme('default');
-    applyTheme(theme);
-  }, []);
+    // Avoid overriding preloaded theme during hydration.
+    if (loading) return;
+    if (config?.theme) applyTheme(config.theme);
+  }, [config, loading]);
 
   return <>{children}</>;
 }

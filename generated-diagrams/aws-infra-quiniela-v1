@@ -1,0 +1,82 @@
+digraph "Quiniela v1 - AWS Infrastructure" {
+  graph [
+    rankdir=LR
+    splines=spline
+    nodesep=0.6
+    ranksep=0.8
+    pad=0.4
+    fontname="Helvetica"
+    fontsize=16
+    label="Quiniela v1 - AWS Infrastructure"
+    labelloc=t
+  ];
+
+  node [
+    shape=box
+    style="rounded,filled"
+    fillcolor="#FFFFFF"
+    color="#AEB6BE"
+    fontname="Helvetica"
+    fontsize=11
+    margin="0.10,0.06"
+  ];
+
+  edge [
+    color="#5E6B75"
+    arrowsize=0.7
+    penwidth=1.2
+    fontname="Helvetica"
+    fontsize=10
+  ];
+
+  user [label="Jugador / Admin", shape=box, fillcolor="#F8F9FA"];
+
+  subgraph cluster_frontend {
+    label="Frontend & App (SST)";
+    color="#AEB6BE";
+    style="rounded,filled";
+    fillcolor="#EAF4FC";
+
+    cdn [label="CloudFront\n(QuinielaWeb URL)"];
+    web [label="SST Next.js App\n(QuinielaWeb)"];
+  }
+
+  subgraph cluster_auth {
+    label="Identity";
+    color="#AEB6BE";
+    style="rounded,filled";
+    fillcolor="#EAF4FC";
+
+    cognito [label="Amazon Cognito\nUser Pool + App Client"];
+  }
+
+  subgraph cluster_data {
+    label="Data Layer (Amazon DynamoDB)";
+    color="#AEB6BE";
+    style="rounded,filled";
+    fillcolor="#EAF4FC";
+
+    users [label="UsersTable"];
+    activity [label="ActivityLogsTable"];
+    tournaments [label="TournamentsTable"];
+    rounds [label="RoundsTable"];
+    teams [label="TeamsTable"];
+    matches [label="MatchesTable"];
+    predictions [label="PredictionsTable"];
+    scores [label="ScoreAggregateTable"];
+  }
+
+  user -> cdn [label="HTTPS"];
+  cdn -> web [label="request / response"];
+
+  web -> cognito [label="auth"];
+
+  web -> users [label="RW"];
+  web -> activity [label="write/query"];
+  web -> tournaments [label="RW/query"];
+  web -> rounds [label="RW/query"];
+  web -> teams [label="RW/query"];
+  web -> matches [label="RW/query"];
+  web -> predictions [label="RW/query"];
+  web -> scores [label="RW/query"];
+}

@@ -46,6 +46,8 @@ export interface TeamStanding {
   pts: number;
 }
 
+export const DEMO_LOCKED_JORNADAS: number[] = [1];
+
 const FLAG_BASE = '/assets/BANDERAS 48X36';
 
 export const teams: Team[] = [
@@ -71,23 +73,20 @@ export const teams: Team[] = [
 ];
 
 export const matches: Match[] = [
-  // Jornada 1 — jugada (1 partido por grupo)
   { id: 101, jornada: 1, dateLabel: '11 Jun', teamAId: 1, teamBId: 4, scoreA: 3, scoreB: 0, status: 'played' },
   { id: 102, jornada: 1, dateLabel: '12 Jun', teamAId: 5, teamBId: 8, scoreA: 2, scoreB: 0, status: 'played' },
   { id: 103, jornada: 1, dateLabel: '13 Jun', teamAId: 9, teamBId: 12, scoreA: 0, scoreB: 2, status: 'played' },
   { id: 104, jornada: 1, dateLabel: '14 Jun', teamAId: 13, teamBId: 16, scoreA: 2, scoreB: 1, status: 'played' },
 
-  // Jornada 2 — jugada
   { id: 201, jornada: 2, dateLabel: '18 Jun', teamAId: 2, teamBId: 3, scoreA: 0, scoreB: 1, status: 'played' },
   { id: 202, jornada: 2, dateLabel: '19 Jun', teamAId: 6, teamBId: 7, scoreA: 2, scoreB: 2, status: 'played' },
   { id: 203, jornada: 2, dateLabel: '20 Jun', teamAId: 10, teamBId: 11, scoreA: 1, scoreB: 0, status: 'played' },
   { id: 204, jornada: 2, dateLabel: '21 Jun', teamAId: 14, teamBId: 15, scoreA: 1, scoreB: 3, status: 'played' },
 
-  // Jornada 3 — próxima
-  { id: 301, jornada: 3, dateLabel: '24 Jun', teamAId: 1, teamBId: 2, status: 'upcoming' },
-  { id: 302, jornada: 3, dateLabel: '25 Jun', teamAId: 5, teamBId: 6, status: 'upcoming' },
-  { id: 303, jornada: 3, dateLabel: '26 Jun', teamAId: 9, teamBId: 10, status: 'upcoming' },
-  { id: 304, jornada: 3, dateLabel: '27 Jun', teamAId: 13, teamBId: 14, status: 'upcoming' },
+  { id: 301, jornada: 3, dateLabel: '24 Jun', teamAId: 1, teamBId: 2, scoreA: 2, scoreB: 1, status: 'played' },
+  { id: 302, jornada: 3, dateLabel: '25 Jun', teamAId: 5, teamBId: 6, scoreA: 1, scoreB: 1, status: 'played' },
+  { id: 303, jornada: 3, dateLabel: '26 Jun', teamAId: 9, teamBId: 10, scoreA: 0, scoreB: 2, status: 'played' },
+  { id: 304, jornada: 3, dateLabel: '27 Jun', teamAId: 13, teamBId: 14, scoreA: 3, scoreB: 0, status: 'played' },
 ];
 
 export const defaultPredictions: Record<number, UserPrediction> = {
@@ -116,7 +115,10 @@ export function computeTeamStandings(): Record<string, TeamStanding[]> {
     if (m.status !== 'played' || m.scoreA == null || m.scoreB == null) continue;
     if (m.scoreA > m.scoreB) pts[m.teamAId] += 3;
     else if (m.scoreB > m.scoreA) pts[m.teamBId] += 3;
-    else { pts[m.teamAId] += 1; pts[m.teamBId] += 1; }
+    else {
+      pts[m.teamAId] += 1;
+      pts[m.teamBId] += 1;
+    }
   }
 
   const result: Record<string, TeamStanding[]> = {};

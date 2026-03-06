@@ -2,20 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth/cognito';
+import { getUserId, isAuthenticated } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
 import { isProfileComplete } from '@/lib/db/users';
+import { fetchQuinielaSnapshot } from '@/lib/db/quiniela';
 import AppShell from '@/components/AppShell';
 import LoadingContent from '@/components/LoadingContent';
 import PromoBanner from '@/components/PromoBanner';
 import UserCard from '@/components/UserCard';
 import NavigationCard from '@/components/NavigationCard';
-import { brandAssets } from '@/lib/assets';
-import { loadPredictions, computePoints } from '@/lib/demo';
+import { isProfileAvatarOption } from '@/lib/assets';
+import { useBranding } from '@/contexts/BrandingContext';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading } = useUser();
+  const { config } = useBranding();
   const [points, setPoints] = useState(0);
 
   useEffect(() => {
@@ -35,8 +37,9 @@ export default function DashboardPage() {
         return;
       }
 
-      const predictions = loadPredictions();
-      setPoints(computePoints(predictions));
+      const userId = await getUserId();
+      const snapshot = await fetchQuinielaSnapshot(userId);
+      setPoints(snapshot.points);
     };
 
     checkAccess();
@@ -51,7 +54,31 @@ export default function DashboardPage() {
   }
 
   const fullName = `${user.nombres} ${user.apellidos}`;
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0284c7&color=fff`;
+  const avatarUrl = user.avatar && isProfileAvatarOption(user.avatar)
+    ? user.avatar
+    : '/assets/PROFILE/unknown-football-shirt-svgrepo-com.svg';
+  const sponsorNames = {
+    master: ['Copa Mundial 2026'],
+    gold: ['Sponsor Gold 1', 'Sponsor Gold 2'],
+    silver: ['Sponsor Silver 1', 'Sponsor Silver 2', 'Sponsor Silver 3'],
+  };
+  const promoSponsors = [
+    ...config.sponsors.master.map((logo, index) => ({
+      name: sponsorNames.master[index] || `Master ${index + 1}`,
+      tier: 'master' as const,
+      logo,
+    })),
+    ...config.sponsors.gold.map((logo, index) => ({
+      name: sponsorNames.gold[index] || `Gold ${index + 1}`,
+      tier: 'gold' as const,
+      logo,
+    })),
+    ...config.sponsors.silver.map((logo, index) => ({
+      name: sponsorNames.silver[index] || `Silver ${index + 1}`,
+      tier: 'silver' as const,
+      logo,
+    })),
+  ];
 
   return (
     <AppShell>
@@ -81,40 +108,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        <PromoBanner 
-          sponsors={[
-            { 
-              name: 'Copa Mundial 2026', 
-              tier: 'master',
-              logo: brandAssets.sponsors.master[0]
-            },
-            { 
-              name: 'Coca-Cola', 
-              tier: 'gold',
-              logo: brandAssets.sponsors.gold[0]
-            },
-            { 
-              name: 'Adidas', 
-              tier: 'gold',
-              logo: brandAssets.sponsors.gold[1]
-            },
-            { 
-              name: 'Visa', 
-              tier: 'silver',
-              logo: brandAssets.sponsors.silver[0]
-            },
-            { 
-              name: 'McDonald\'s', 
-              tier: 'silver',
-              logo: brandAssets.sponsors.silver[1]
-            },
-            { 
-              name: 'Hyundai', 
-              tier: 'silver',
-              logo: brandAssets.sponsors.silver[2]
-            }
-          ]}
-        />
+        <PromoBanner sponsors={promoSponsors} />
       </section>
     </AppShell>
   );

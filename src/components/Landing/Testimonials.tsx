@@ -28,7 +28,7 @@ const testimonials = [
 
 const videos = [
   {
-    title: 'El Gallo recomienda el partido del día',
+    title: 'Analisis del partido del dia',
     duration: '1:30',
     thumbnail: 'video1',
   },
@@ -69,13 +69,16 @@ export default function Testimonials() {
   }, []);
 
   return (
-    <section className="py-20 bg-surface">
+    <section className="py-20 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-black text-text mb-4">
+          <span className="inline-flex items-center rounded-full border border-rose-300/40 bg-rose-50 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-rose-700 mb-4">
+            Prueba social real
+          </span>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             Historias de Ganadores
           </h2>
-          <p className="text-xl text-muted max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
             Miles de personas ya están ganando. ¡Tú puedes ser el próximo!
           </p>
         </div>
@@ -89,7 +92,7 @@ export default function Testimonials() {
                 cardRefs.current[index] = el;
               }}
               data-index={index}
-              className={`bg-bg p-6 rounded-xl border-2 border-border hover:border-primary transition-all duration-500 ${
+              className={`bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 ${
                 visibleCards.includes(index)
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-8'
@@ -97,16 +100,16 @@ export default function Testimonials() {
               style={{ transitionDelay: `${index * 150}ms` }}
             >
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-primaryText font-bold text-lg">
+                <div className="w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center text-white font-bold text-lg">
                   {testimonial.avatar}
                 </div>
                 <div>
-                  <div className="font-bold text-text">{testimonial.name}</div>
-                  <div className="text-sm text-muted">{testimonial.location}</div>
+                  <div className="font-bold text-slate-900">{testimonial.name}</div>
+                  <div className="text-sm text-slate-500">{testimonial.location}</div>
                 </div>
               </div>
               
-              <p className="text-muted italic mb-4">"{testimonial.quote}"</p>
+              <p className="text-slate-600 italic mb-4">"{testimonial.quote}"</p>
               
               <div className="flex items-center gap-2 text-sm">
                 <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-accent">
@@ -120,7 +123,7 @@ export default function Testimonials() {
 
         {/* Videos */}
         <div>
-          <h3 className="text-2xl font-bold text-text text-center mb-8">
+          <h3 className="text-2xl font-bold text-slate-900 text-center mb-8">
             Videos Destacados
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -129,7 +132,7 @@ export default function Testimonials() {
                 key={index}
                 className="group cursor-pointer"
               >
-                <div className="relative bg-surface2 rounded-xl overflow-hidden border-2 border-border hover:border-primary transition-all duration-300 aspect-video mb-3">
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-white hover:border-primary transition-all duration-300 aspect-video mb-3 shadow-sm">
                   {/* Video Placeholder */}
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
                     <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -144,7 +147,7 @@ export default function Testimonials() {
                     {video.duration}
                   </div>
                 </div>
-                <h4 className="font-bold text-text group-hover:text-primary transition-colors">
+                <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors">
                   {video.title}
                 </h4>
               </div>
