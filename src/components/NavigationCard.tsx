@@ -1,7 +1,9 @@
 'use client';
 
+import { ReactNode } from 'react';
+
 interface NavigationCardProps {
-  icon: string;
+  icon: string | ReactNode;
   title: string;
   description: string;
   onClick: () => void;

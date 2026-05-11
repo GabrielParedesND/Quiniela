@@ -14,6 +14,8 @@ interface ResultCardProps {
   predictionB: string;
   points: number;
   description: string;
+  isSpecial?: boolean;
+  multiplier?: number;
 }
 
 export default function ResultCard({
@@ -25,35 +27,48 @@ export default function ResultCard({
   predictionB,
   points,
   description,
+  isSpecial,
+  multiplier,
 }: ResultCardProps) {
   const getColorByPoints = (pts: number) => {
-    if (pts === 5) return 'var(--color-accent)';
-    if (pts === 3) return 'var(--color-primary)';
+    if (pts >= 5) return 'var(--color-accent)';
+    if (pts >= 3) return 'var(--color-primary)';
     return 'var(--color-muted)';
   };
 
   return (
     <div
       className="border rounded-2xl overflow-hidden p-4 flex items-center justify-between hover:opacity-90 transition"
-      style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}
+      style={{
+        borderColor: isSpecial ? 'var(--color-accent)' : 'var(--color-border)',
+        backgroundColor: 'var(--color-surface)',
+        borderWidth: isSpecial ? '2px' : '1px',
+      }}
     >
       <div className="flex items-center space-x-4">
         <div className="flex space-x-3">
           <img
             src={teamA.flagUrl}
-            className="w-8 h-6"
+            className="h-6 w-auto"
             alt={teamA.short}
           />
           <img
             src={teamB.flagUrl}
-            className="w-8 h-6"
+            className="h-6 w-auto"
             alt={teamB.short}
           />
         </div>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-tighter" style={{ color: 'var(--color-text)' }}>
-            {teamA.short} vs {teamB.short}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[10px] font-black uppercase tracking-tighter" style={{ color: 'var(--color-text)' }}>
+              {teamA.short} vs {teamB.short}
+            </p>
+            {isSpecial && (
+              <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>
+                ⚡ x{multiplier || 2}
+              </span>
+            )}
+          </div>
           <div className="flex items-center space-x-2 mt-0.5">
             <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'var(--color-muted)' }}>
               Oficial: {officialScoreA}-{officialScoreB}

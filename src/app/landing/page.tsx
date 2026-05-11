@@ -4,6 +4,8 @@ import HowItWorks from '@/components/Landing/HowItWorks';
 import Scoring from '@/components/Landing/Scoring';
 import Leaderboard from '@/components/Landing/Leaderboard';
 import Activations from '@/components/Landing/Activations';
+import AdSpaceLanding from '@/components/Landing/AdSpaceLanding';
+import AdSidebars from '@/components/Landing/AdSidebars';
 import Testimonials from '@/components/Landing/Testimonials';
 import Footer from '@/components/Landing/Footer';
 
@@ -20,11 +22,13 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-surface">
+      <AdSidebars />
       <Hero />
       <HowItWorks />
       <Scoring />
       <Leaderboard />
       <Activations />
+      <AdSpaceLanding />
       <Testimonials />
       <Footer />
       

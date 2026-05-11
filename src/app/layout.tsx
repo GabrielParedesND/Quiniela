@@ -4,8 +4,12 @@ import Script from "next/script";
 import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
 import BrandingMetaUpdater from "@/components/BrandingMetaUpdater";
+import BackgroundImage from "@/components/BackgroundImage";
+import ActiveProjectGate from "@/components/ActiveProjectGate";
 import { UserProvider } from "@/contexts/UserContext";
 import { BrandingProvider } from "@/contexts/BrandingContext";
+import { TournamentProvider } from "@/contexts/TournamentContext";
+import DebugImageLabels from "@/components/DebugImageLabels";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,9 +61,15 @@ export default function RootLayout({
         </Script>
         <BrandingProvider>
           <BrandingMetaUpdater />
+          <BackgroundImage />
           <ThemeProvider>
             <UserProvider>
-              {children}
+              <TournamentProvider>
+                <ActiveProjectGate>
+                  <DebugImageLabels />
+                  {children}
+                </ActiveProjectGate>
+              </TournamentProvider>
             </UserProvider>
           </ThemeProvider>
         </BrandingProvider>

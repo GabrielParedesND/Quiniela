@@ -60,6 +60,12 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
+    if (!formData.verificationCode || formData.verificationCode.length !== 6) {
+      setError('Por favor ingresa un código de 6 dígitos');
+      setLoading(false);
+      return;
+    }
+
     try {
       await confirmSignUp(formData.email, formData.verificationCode);
       await signIn({
@@ -69,8 +75,8 @@ export default function RegisterPage() {
 
       router.push('/onboarding');
     } catch (err: any) {
+      console.error('Confirmation error:', err);
       setError(err.message || 'Código de verificación inválido');
-    } finally {
       setLoading(false);
     }
   };

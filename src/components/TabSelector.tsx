@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 interface TabSelectorProps<T extends string | number> {
   tabs: { value: T; label: string }[];
   activeTab: T;
@@ -11,28 +13,37 @@ export default function TabSelector<T extends string | number>({
   activeTab,
   onTabChange,
 }: TabSelectorProps<T>) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (activeRef.current) {
+      activeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [activeTab]);
+
   return (
-    <div
-      className="rounded-2xl shadow-sm p-1 border"
-      style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-    >
-      <div className="flex overflow-x-auto items-center space-x-6 px-4 py-3 hide-scrollbar">
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => onTabChange(tab.value)}
-            className="tab-btn px-4 py-2 text-[10px] font-black uppercase tracking-widest min-w-[100px] text-center relative transition"
-            style={{ color: tab.value === activeTab ? 'var(--color-text)' : 'var(--color-muted)' }}
-          >
-            {tab.label}
-            {tab.value === activeTab && (
-              <span
-                className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full"
-                style={{ backgroundColor: 'var(--color-accent)' }}
-              ></span>
-            )}
-          </button>
-        ))}
+    <div ref={containerRef} className="overflow-x-auto hide-scrollbar -mx-1 px-1">
+      <div className="flex gap-2 py-1" style={{ width: 'max-content' }}>
+        {tabs.map((tab) => {
+          const isActive = tab.value === activeTab;
+          return (
+            <button
+              key={tab.value}
+              ref={isActive ? activeRef : undefined}
+              onClick={() => onTabChange(tab.value)}
+              className="whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-200"
+              style={{
+                backgroundColor: isActive ? 'var(--color-primary)' : 'var(--color-surface)',
+                color: isActive ? 'var(--color-primaryText)' : 'var(--color-muted)',
+                border: isActive ? 'none' : '1px solid var(--color-border)',
+                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

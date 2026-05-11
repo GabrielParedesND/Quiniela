@@ -18,6 +18,21 @@ export default function RankingTable({ users }: RankingTableProps) {
     return { bg: 'var(--color-muted)', text: 'var(--color-primaryText)' };
   };
 
+  if (!users || users.length === 0) {
+    return (
+      <div
+        className="shadow-sm rounded-3xl border overflow-hidden"
+        style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+      >
+        <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+          <span className="text-3xl mb-2">🏆</span>
+          <p className="text-xs font-black uppercase tracking-wider" style={{ color: 'var(--color-text)' }}>Proximamente...</p>
+          <p className="text-[10px] mt-1" style={{ color: 'var(--color-muted)' }}>El ranking se actualizara cuando inicie la competencia.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="shadow-sm rounded-3xl border overflow-x-auto"

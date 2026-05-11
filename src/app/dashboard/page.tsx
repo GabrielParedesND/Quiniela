@@ -13,12 +13,22 @@ import UserCard from '@/components/UserCard';
 import NavigationCard from '@/components/NavigationCard';
 import { isProfileAvatarOption } from '@/lib/assets';
 import { useBranding } from '@/contexts/BrandingContext';
+import { useTournament } from '@/contexts/TournamentContext';
+import TournamentSelector from '@/components/TournamentSelector';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading } = useUser();
   const { config } = useBranding();
+  const { selectedTournamentId: tournamentId } = useTournament();
   const [points, setPoints] = useState(0);
+  const [printedCodesEnabled, setPrintedCodesEnabled] = useState(false);
+
+  useEffect(() => {
+    // Check printed codes feature from branding config
+    const enabled = !!(config.features && config.features.printedCodesEnabled);
+    setPrintedCodesEnabled(enabled);
+  }, [config]);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -38,12 +48,12 @@ export default function DashboardPage() {
       }
 
       const userId = await getUserId();
-      const snapshot = await fetchQuinielaSnapshot(userId);
+      const snapshot = await fetchQuinielaSnapshot(userId, tournamentId);
       setPoints(snapshot.points);
     };
 
     checkAccess();
-  }, [user, loading, router]);
+  }, [user, loading, router, tournamentId]);
 
   if (loading || !user) {
     return (
@@ -57,32 +67,12 @@ export default function DashboardPage() {
   const avatarUrl = user.avatar && isProfileAvatarOption(user.avatar)
     ? user.avatar
     : '/assets/PROFILE/unknown-football-shirt-svgrepo-com.svg';
-  const sponsorNames = {
-    master: ['Copa Mundial 2026'],
-    gold: ['Sponsor Gold 1', 'Sponsor Gold 2'],
-    silver: ['Sponsor Silver 1', 'Sponsor Silver 2', 'Sponsor Silver 3'],
-  };
-  const promoSponsors = [
-    ...config.sponsors.master.map((logo, index) => ({
-      name: sponsorNames.master[index] || `Master ${index + 1}`,
-      tier: 'master' as const,
-      logo,
-    })),
-    ...config.sponsors.gold.map((logo, index) => ({
-      name: sponsorNames.gold[index] || `Gold ${index + 1}`,
-      tier: 'gold' as const,
-      logo,
-    })),
-    ...config.sponsors.silver.map((logo, index) => ({
-      name: sponsorNames.silver[index] || `Silver ${index + 1}`,
-      tier: 'silver' as const,
-      logo,
-    })),
-  ];
 
   return (
     <AppShell>
       <section className="fade-in space-y-6">
+        <TournamentSelector />
+
         <UserCard
           fullName={fullName}
           avatarUrl={avatarUrl}
@@ -92,7 +82,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-3">
           <NavigationCard
-            icon="⚽"
+            icon={<img src="/assets/ICON PRON RESULTADOS 48X48.svg" alt="" className="w-8 h-8" />}
             title="Pronosticar Resultados"
             description="Ingresa tus marcadores de la jornada"
             onClick={() => router.push('/predictions')}
@@ -100,15 +90,33 @@ export default function DashboardPage() {
           />
 
           <NavigationCard
-            icon="📈"
+            icon={<img src="/assets/ICON POS DE EQUIPOS 48X48.svg" alt="" className="w-8 h-8" />}
             title="Posiciones de Equipos"
             description="Mira cómo avanzan los grupos oficiales"
             onClick={() => router.push('/teams')}
             color="emerald"
           />
+
+          <NavigationCard
+            icon={<img src="/assets/ICON ZONA MUNDIALISTA 48X48.svg" alt="" className="w-8 h-8" />}
+            title="Zona Mundialista"
+            description="Fotos, videos, dinámicas y más"
+            onClick={() => router.push('/landing')}
+            color="orange"
+          />
+
+          {config.features && config.features.printedCodesEnabled === true && (
+            <NavigationCard
+              icon="🎟️"
+              title="Código de Ejemplar"
+              description="Canjea tu código y multiplica tus puntos"
+              onClick={() => router.push('/codigos')}
+              color="orange"
+            />
+          )}
         </div>
 
-        <PromoBanner sponsors={promoSponsors} />
+        <PromoBanner />
       </section>
     </AppShell>
   );

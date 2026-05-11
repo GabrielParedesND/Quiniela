@@ -26,6 +26,7 @@ export interface BrandAssets {
     master: string[];
     gold: string[];
     silver: string[];
+    logos: string[];
   };
 }
 
@@ -62,6 +63,7 @@ export const brandAssets: BrandAssets = {
       resolveBrandAssetUrl('/assets/LOGO SILVER 2 80X40.svg'),
       resolveBrandAssetUrl('/assets/LOGO SILVER 3 80X40.svg'),
     ],
+    logos: [],
   },
 };
 

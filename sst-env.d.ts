@@ -6,62 +6,12 @@
 
 declare module "sst" {
   export interface Resource {
-    "ActivityLogsTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "BrandingAssetsBucket": {
-      "name": string
-      "type": "sst.aws.Bucket"
-    }
-    "BrandingConfigTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "MatchesTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "PredictionsTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "QuinielaUserPool": {
-      "id": string
-      "type": "sst.aws.CognitoUserPool"
-    }
-    "QuinielaUserPoolClient": {
-      "id": string
-      "secret": string
-      "type": "sst.aws.CognitoUserPoolClient"
-    }
     "QuinielaWeb": {
       "type": "sst.aws.Nextjs"
       "url": string
     }
-    "RoundsTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "ScoreAggregateTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "TeamsTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "TournamentsTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "UsersTable": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
   }
 }
-/// <reference path="sst-env.d.ts" />
 
 import "sst"
 export {}

@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { isProfileAvatarOption } from '@/lib/assets';
 import { useBranding } from '@/contexts/BrandingContext';
-import SponsorBanner from './SponsorBanner';
+import AdSpace from './AdSpace';
 import Navbar from './Navbar';
 
 interface AppShellProps {
@@ -41,7 +41,7 @@ export default function AppShell({ children }: AppShellProps) {
       {/* All content above background */}
       <div className="relative flex flex-col min-h-screen" style={{ zIndex: 1 }}>
         <Navbar username={fullName} avatarUrl={avatarUrl} />
-        <SponsorBanner />
+        <AdSpace />
         <main className="flex-grow w-full max-w-4xl mx-auto p-4">
           {children}
         </main>
@@ -58,26 +58,34 @@ export default function AppShell({ children }: AppShellProps) {
               <div className="text-center">
                 <h5 className="text-sm font-black uppercase mb-3" style={{ color: 'var(--color-text)' }}>Enlaces</h5>
                 <ul className="space-y-2 text-xs" style={{ color: 'var(--color-muted)' }}>
-                  <li><a href="#" className="hover:opacity-70 transition">Cómo Jugar</a></li>
-                  <li><a href="#" className="hover:opacity-70 transition">Premios</a></li>
-                  <li><a href="#" className="hover:opacity-70 transition">Reglas</a></li>
-                  <li><a href="#" className="hover:opacity-70 transition">Soporte</a></li>
+                  <li><a href="/como-jugar" className="hover:opacity-70 transition">Cómo Jugar</a></li>
+                  <li><a href="/premios" className="hover:opacity-70 transition">Premios</a></li>
+                  <li><a href="/reglas" className="hover:opacity-70 transition">Reglas</a></li>
+                  <li><a href="/soporte" className="hover:opacity-70 transition">Soporte</a></li>
                 </ul>
               </div>
               
               <div className="text-center md:text-right">
                 <h5 className="text-sm font-black uppercase mb-3" style={{ color: 'var(--color-text)' }}>Legal</h5>
                 <ul className="space-y-2 text-xs" style={{ color: 'var(--color-muted)' }}>
-                  <li><a href="#" className="hover:opacity-70 transition">Términos y Condiciones</a></li>
-                  <li><a href="#" className="hover:opacity-70 transition">Política de Privacidad</a></li>
-                  <li><a href="#" className="hover:opacity-70 transition">Contacto</a></li>
+                  <li><a href="/terminos" className="hover:opacity-70 transition">Términos y Condiciones</a></li>
+                  <li><a href="/privacidad" className="hover:opacity-70 transition">Política de Privacidad</a></li>
+                  <li><a href="/contacto" className="hover:opacity-70 transition">Contacto</a></li>
                 </ul>
               </div>
             </div>
             
             <div className="border-t pt-6 text-center" style={{ borderColor: 'var(--color-border)' }}>
+              <p className="text-xs mb-1 font-semibold" style={{ color: 'var(--color-text)' }}>
+                {config.content?.pageTitle || 'Quiniela Mundialista'}
+              </p>
+              {config.content?.pageDescription && (
+                <p className="text-[10px] mb-2" style={{ color: 'var(--color-muted)' }}>
+                  {config.content.pageDescription}
+                </p>
+              )}
               <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--color-muted)' }}>
-                © 2024 Copa Mundial 2026 • Todos los derechos reservados
+                © {new Date().getFullYear()} {config.content?.pageTitle || 'Quiniela Mundialista'} • Todos los derechos reservados
               </p>
             </div>
           </div>

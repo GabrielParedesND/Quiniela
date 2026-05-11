@@ -176,6 +176,32 @@ export const signIn = async (params: SignInParams): Promise<any> => {
         });
         reject(err);
       },
+      newPasswordRequired: (userAttributes) => {
+        // When admin creates a user, Cognito requires a password change on first login.
+        // Complete the challenge using the same password the user just entered.
+        delete userAttributes.email_verified;
+        delete userAttributes.email;
+        cognitoUser.completeNewPasswordChallenge(password, userAttributes, {
+          onSuccess: async (result) => {
+            const userId = result.getIdToken().payload.sub;
+            await logActivity({
+              userId,
+              email,
+              activityType: 'LOGIN_SUCCESS',
+              metadata: { newPasswordCompleted: true },
+            });
+            resolve(result);
+          },
+          onFailure: async (err) => {
+            await logActivity({
+              email,
+              activityType: 'LOGIN_FAILED',
+              metadata: { error: err.message, challenge: 'newPasswordRequired' },
+            });
+            reject(err);
+          },
+        });
+      },
     });
   });
 };

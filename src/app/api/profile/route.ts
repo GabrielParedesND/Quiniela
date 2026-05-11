@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resource } from 'sst';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { getRandomProfileAvatar, isProfileAvatarOption } from '@/lib/assets';
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
     };
 
     const command = new PutCommand({
-      TableName: Resource.UsersTable.name,
+      TableName: process.env.DYNAMO_USERS_TABLE,
       Item: profileWithAvatar,
     });
 
@@ -75,7 +74,7 @@ export async function GET(request: NextRequest) {
     }
 
     const command = new GetCommand({
-      TableName: Resource.UsersTable.name,
+      TableName: process.env.DYNAMO_USERS_TABLE,
       Key: { userId },
     });
 

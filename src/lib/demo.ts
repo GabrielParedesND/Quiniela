@@ -1,14 +1,14 @@
 import { DEMO_STORAGE_KEYS } from '@/lib/demo-mode';
 import { defaultPredictions, matches } from './mock';
 
-type Predictions = Record<number, { a: string; b: string }>;
+type Predictions = Record<string, { a: string; b: string }>;
 
 function toStringPredictions(
-  source: Record<number, { a: number | string; b: number | string }>
+  source: Record<string, { a: number | string; b: number | string }>
 ): Predictions {
   const result: Predictions = {};
   for (const [id, pred] of Object.entries(source)) {
-    result[Number(id)] = { a: String(pred.a), b: String(pred.b) };
+    result[id] = { a: String(pred.a), b: String(pred.b) };
   }
   return result;
 }

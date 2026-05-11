@@ -10,153 +10,73 @@ export default $config({
     };
   },
   async run() {
-    const userPool = new sst.aws.CognitoUserPool("QuinielaUserPool", {
-      usernames: ["email"],
-    });
+    // Import outputs from cms-quiniela stack
+    // Use fs.readFileSync to avoid module cache issues across stages
+    const fs = await import("fs");
+    const path = await import("path");
+    let cmsOutputs: Record<string, string> | null = null;
+    try {
+      const outputsPath = path.resolve("../cms-quiniela/.sst/outputs.json");
+      const raw = fs.readFileSync(outputsPath, "utf-8");
+      cmsOutputs = JSON.parse(raw);
+    } catch {
+      cmsOutputs = null;
+    }
+    
+    if (!cmsOutputs) {
+      throw new Error("cms-quiniela must be deployed first. Run 'sst deploy' in cms-quiniela directory.");
+    }
 
-    const userPoolClient = userPool.addClient("QuinielaUserPoolClient");
+    // Reference Cognito resources from cms-quiniela using actual IDs from outputs
+    const userPoolId = cmsOutputs.userPoolId;
+    const userPoolClientId = cmsOutputs.userPoolClientId;
 
-    const usersTable = new sst.aws.Dynamo("UsersTable", {
-      fields: {
-        userId: "string",
-      },
-      primaryIndex: { hashKey: "userId" },
-    });
+    // Reference DynamoDB table names from cms-quiniela outputs
+    const usersTableName = cmsOutputs.usersTableName;
+    const activityLogsTableName = cmsOutputs.activityLogsTableName;
+    const tournamentsTableName = cmsOutputs.tournamentsTableName;
+    const roundsTableName = cmsOutputs.roundsTableName;
+    const teamsTableName = cmsOutputs.teamsTableName;
+    const matchesTableName = cmsOutputs.matchesTableName;
+    const predictionsTableName = cmsOutputs.predictionsTableName;
+    const scoreAggregateTableName = cmsOutputs.scoreAggregateTableName;
+    const brandingConfigTableName = cmsOutputs.brandingConfigTableName;
+    const standingsTableName = cmsOutputs.standingsTableName;
 
-    const activityLogsTable = new sst.aws.Dynamo("ActivityLogsTable", {
-      fields: {
-        logId: "string",
-        timestamp: "number",
-        userId: "string",
-      },
-      primaryIndex: { hashKey: "logId" },
-      globalIndexes: {
-        userIndex: { hashKey: "userId", rangeKey: "timestamp" },
-      },
-    });
+    // Get AWS region and account for ARN construction
+    const region = cmsOutputs.region || aws.getRegionOutput().name;
+    const accountId = aws.getCallerIdentityOutput().accountId;
 
-    const tournamentsTable = new sst.aws.Dynamo("TournamentsTable", {
-      fields: {
-        tournamentId: "string",
-        code: "string",
-      },
-      primaryIndex: { hashKey: "tournamentId" },
-      globalIndexes: {
-        byCode: { hashKey: "code" },
-      },
-    });
+    // Construct table ARNs
+    const usersTableArn = cmsOutputs.usersTableArn;
+    const activityLogsTableArn = cmsOutputs.activityLogsTableArn;
+    const tournamentsTableArn = cmsOutputs.tournamentsTableArn;
+    const roundsTableArn = cmsOutputs.roundsTableArn;
+    const teamsTableArn = cmsOutputs.teamsTableArn;
+    const matchesTableArn = cmsOutputs.matchesTableArn;
+    const predictionsTableArn = cmsOutputs.predictionsTableArn;
+    const scoreAggregateTableArn = cmsOutputs.scoreAggregateTableArn;
+    const brandingConfigTableArn = cmsOutputs.brandingConfigTableArn;
+    const standingsTableArn = cmsOutputs.standingsTableArn;
+    const printedCodesTableName = cmsOutputs.printedCodesTableName;
+    const printedCodesTableArn = cmsOutputs.printedCodesTableArn;
 
-    const roundsTable = new sst.aws.Dynamo("RoundsTable", {
-      fields: {
-        roundId: "string",
-        tournamentId: "string",
-        number: "number",
-      },
-      primaryIndex: { hashKey: "roundId" },
-      globalIndexes: {
-        byTournamentAndNumber: { hashKey: "tournamentId", rangeKey: "number" },
-      },
-    });
-
-    const teamsTable = new sst.aws.Dynamo("TeamsTable", {
-      fields: {
-        teamId: "number",
-        tournamentId: "string",
-        groupCode: "string",
-      },
-      primaryIndex: { hashKey: "teamId" },
-      globalIndexes: {
-        byTournamentAndGroup: { hashKey: "tournamentId", rangeKey: "groupCode" },
-      },
-    });
-
-    const matchesTable = new sst.aws.Dynamo("MatchesTable", {
-      fields: {
-        matchId: "number",
-        tournamentId: "string",
-        roundNumber: "number",
-        kickoffAt: "string",
-      },
-      primaryIndex: { hashKey: "matchId" },
-      globalIndexes: {
-        byTournamentAndKickoff: { hashKey: "tournamentId", rangeKey: "kickoffAt" },
-        byTournamentAndRound: { hashKey: "tournamentId", rangeKey: "roundNumber" },
-      },
-    });
-
-    const predictionsTable = new sst.aws.Dynamo("PredictionsTable", {
-      fields: {
-        predictionId: "string",
-        tournamentId: "string",
-        userId: "string",
-        matchId: "number",
-        updatedAt: "string",
-      },
-      primaryIndex: { hashKey: "predictionId" },
-      globalIndexes: {
-        byUserAndUpdatedAt: { hashKey: "userId", rangeKey: "updatedAt" },
-        byTournamentAndUser: { hashKey: "tournamentId", rangeKey: "userId" },
-        byMatch: { hashKey: "matchId", rangeKey: "updatedAt" },
-      },
-    });
-
-    const scoreAggregateTable = new sst.aws.Dynamo("ScoreAggregateTable", {
-      fields: {
-        id: "string",
-        tournamentId: "string",
-        scope: "string",
-        points: "number",
-      },
-      primaryIndex: { hashKey: "id" },
-      globalIndexes: {
-        byTournamentAndPoints: { hashKey: "tournamentId", rangeKey: "points" },
-        byTournamentAndScope: { hashKey: "tournamentId", rangeKey: "scope" },
-      },
-    });
-
-    const brandingConfigTable = new sst.aws.Dynamo("BrandingConfigTable", {
-      fields: {
-        brandingId: "string",
-        tournamentId: "string",
-      },
-      primaryIndex: { hashKey: "brandingId" },
-      globalIndexes: {
-        byTournament: { hashKey: "tournamentId" },
-      },
-    });
-
-    const brandingAssetsBucket = new sst.aws.Bucket("BrandingAssetsBucket", {
-      access: "public",
-    });
-    const brandingAssetsBaseUrl =
-      process.env.NEXT_PUBLIC_BRAND_ASSETS_BASE_URL ||
-      $interpolate`https://${brandingAssetsBucket.name}.s3.${aws.getRegionOutput().name}.amazonaws.com`;
+    // Reference S3 bucket from cms-quiniela outputs
+    const brandingAssetsBucketName = cmsOutputs.brandingAssetsBucketName;
+    const brandingAssetsBucketArn = cmsOutputs.brandingAssetsBucketArn;
+    const brandingAssetsBaseUrl = cmsOutputs.brandingAssetsBaseUrl;
 
     const web = new sst.aws.Nextjs("QuinielaWeb", {
-      link: [
-        userPool,
-        userPoolClient,
-        usersTable,
-        activityLogsTable,
-        tournamentsTable,
-        roundsTable,
-        teamsTable,
-        matchesTable,
-        predictionsTable,
-        scoreAggregateTable,
-        brandingConfigTable,
-        brandingAssetsBucket,
-      ],
       permissions: [
         {
           actions: ["dynamodb:PutItem", "dynamodb:GetItem"],
-          resources: [usersTable.arn],
+          resources: [usersTableArn],
         },
         {
           actions: ["dynamodb:PutItem", "dynamodb:Query"],
           resources: [
-            activityLogsTable.arn,
-            $interpolate`${activityLogsTable.arn}/index/*`,
+            activityLogsTableArn,
+            `${activityLogsTableArn}/index/*`,
           ],
         },
         {
@@ -169,60 +89,69 @@ export default $config({
             "dynamodb:Scan",
           ],
           resources: [
-            tournamentsTable.arn,
-            roundsTable.arn,
-            teamsTable.arn,
-            matchesTable.arn,
-            predictionsTable.arn,
-            scoreAggregateTable.arn,
-            brandingConfigTable.arn,
-            $interpolate`${tournamentsTable.arn}/index/*`,
-            $interpolate`${roundsTable.arn}/index/*`,
-            $interpolate`${teamsTable.arn}/index/*`,
-            $interpolate`${matchesTable.arn}/index/*`,
-            $interpolate`${predictionsTable.arn}/index/*`,
-            $interpolate`${scoreAggregateTable.arn}/index/*`,
-            $interpolate`${brandingConfigTable.arn}/index/*`,
+            tournamentsTableArn,
+            roundsTableArn,
+            teamsTableArn,
+            matchesTableArn,
+            predictionsTableArn,
+            scoreAggregateTableArn,
+            brandingConfigTableArn,
+            `${tournamentsTableArn}/index/*`,
+            `${roundsTableArn}/index/*`,
+            `${teamsTableArn}/index/*`,
+            `${matchesTableArn}/index/*`,
+            `${predictionsTableArn}/index/*`,
+            `${scoreAggregateTableArn}/index/*`,
+            `${brandingConfigTableArn}/index/*`,
+            standingsTableArn,
+            `${standingsTableArn}/index/*`,
+            printedCodesTableArn,
+            `${printedCodesTableArn}/index/*`,
           ],
         },
         {
           actions: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket"],
-          resources: [brandingAssetsBucket.arn, $interpolate`${brandingAssetsBucket.arn}/*`],
+          resources: [brandingAssetsBucketArn, `${brandingAssetsBucketArn}/*`],
         },
       ],
       environment: {
-        NEXT_PUBLIC_USER_POOL_ID: userPool.id,
-        NEXT_PUBLIC_USER_POOL_CLIENT_ID: userPoolClient.id,
-        NEXT_PUBLIC_AWS_REGION: aws.getRegionOutput().name,
-        NEXT_PUBLIC_ACTIVITY_LOGS_TABLE: activityLogsTable.name,
-        DYNAMO_TOURNAMENTS_TABLE: tournamentsTable.name,
-        DYNAMO_ROUNDS_TABLE: roundsTable.name,
-        DYNAMO_TEAMS_TABLE: teamsTable.name,
-        DYNAMO_MATCHES_TABLE: matchesTable.name,
-        DYNAMO_PREDICTIONS_TABLE: predictionsTable.name,
-        DYNAMO_SCORE_AGGREGATE_TABLE: scoreAggregateTable.name,
-        DYNAMO_BRANDING_CONFIG_TABLE: brandingConfigTable.name,
-        BRAND_ASSETS_BUCKET_NAME: brandingAssetsBucket.name,
+        NEXT_PUBLIC_USER_POOL_ID: userPoolId,
+        NEXT_PUBLIC_USER_POOL_CLIENT_ID: userPoolClientId,
+        NEXT_PUBLIC_AWS_REGION: region,
+        NEXT_PUBLIC_ACTIVITY_LOGS_TABLE: activityLogsTableName,
+        DYNAMO_USERS_TABLE: usersTableName,
+        DYNAMO_TOURNAMENTS_TABLE: tournamentsTableName,
+        DYNAMO_ROUNDS_TABLE: roundsTableName,
+        DYNAMO_TEAMS_TABLE: teamsTableName,
+        DYNAMO_MATCHES_TABLE: matchesTableName,
+        DYNAMO_PREDICTIONS_TABLE: predictionsTableName,
+        DYNAMO_SCORE_AGGREGATE_TABLE: scoreAggregateTableName,
+        DYNAMO_BRANDING_CONFIG_TABLE: brandingConfigTableName,
+        DYNAMO_STANDINGS_TABLE: standingsTableName,
+        DYNAMO_PRINTED_CODES_TABLE: printedCodesTableName,
+        BRAND_ASSETS_BUCKET_NAME: brandingAssetsBucketName,
         NEXT_PUBLIC_BRAND_ASSETS_BASE_URL: brandingAssetsBaseUrl,
         NEXT_PUBLIC_DEMO_MODE: process.env.NEXT_PUBLIC_DEMO_MODE || "false",
       },
     });
 
     return {
-      userPoolId: userPool.id,
-      userPoolClientId: userPoolClient.id,
-      usersTableName: usersTable.name,
-      activityLogsTableName: activityLogsTable.name,
-      tournamentsTableName: tournamentsTable.name,
-      roundsTableName: roundsTable.name,
-      teamsTableName: teamsTable.name,
-      matchesTableName: matchesTable.name,
-      predictionsTableName: predictionsTable.name,
-      scoreAggregateTableName: scoreAggregateTable.name,
-      brandingConfigTableName: brandingConfigTable.name,
-      brandingAssetsBucketName: brandingAssetsBucket.name,
+      userPoolId: userPoolId,
+      userPoolClientId: userPoolClientId,
+      usersTableName: usersTableName,
+      activityLogsTableName: activityLogsTableName,
+      tournamentsTableName: tournamentsTableName,
+      roundsTableName: roundsTableName,
+      teamsTableName: teamsTableName,
+      matchesTableName: matchesTableName,
+      predictionsTableName: predictionsTableName,
+      scoreAggregateTableName: scoreAggregateTableName,
+      brandingConfigTableName: brandingConfigTableName,
+      standingsTableName: standingsTableName,
+      printedCodesTableName: printedCodesTableName,
+      brandingAssetsBucketName: brandingAssetsBucketName,
       brandingAssetsBaseUrl,
-      region: aws.getRegionOutput().name,
+      region: region,
       url: web.url,
     };
   },

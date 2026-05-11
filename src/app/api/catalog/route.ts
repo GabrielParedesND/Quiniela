@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { BrandingAssets, BrandingMeta, BrandingSponsors } from '@/lib/branding/types';
+import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { BrandingAssets, BrandingMeta, BrandingSponsors, BrandingSEO, BrandingContent, BrandingSupport, BrandingLegal } from '@/lib/branding/types';
 import { normalizeBrandingAssets, normalizeBrandingSponsorUrls, resolveBrandAssetUrl } from '@/lib/branding/assets';
 import { Theme } from '@/lib/theme/types';
-
-const DEFAULT_TOURNAMENT_ID = 'world-cup-2026-demo';
 
 const client = new DynamoDBClient({
   region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
@@ -51,17 +49,17 @@ type CatalogPayload = {
     status?: string;
   }>;
   teams: Array<{
-    teamId: number;
+    teamId: string;
     code: string;
     name: string;
     groupCode: string;
     flagUrl: string;
   }>;
   matches: Array<{
-    matchId: number;
+    matchId: string;
     roundNumber: number;
-    homeTeamId: number;
-    awayTeamId: number;
+    homeTeamId: string;
+    awayTeamId: string;
     kickoffAt: string;
     dateLabel?: string;
     status?: 'played' | 'upcoming';
@@ -80,6 +78,10 @@ type CatalogPayload = {
     assets?: BrandingAssets;
     sponsors?: BrandingSponsors;
     meta?: BrandingMeta;
+    seo?: BrandingSEO;
+    content?: BrandingContent;
+    support?: BrandingSupport;
+    legal?: BrandingLegal;
   };
 };
 
@@ -96,8 +98,40 @@ export async function GET(request: NextRequest) {
   try {
     const tables = getTables();
     const { searchParams } = new URL(request.url);
-    const tournamentId = searchParams.get('tournamentId') || DEFAULT_TOURNAMENT_ID;
+    const tournamentIdParam = searchParams.get('tournamentId');
+    let tournamentId = tournamentIdParam || '';
 
+    // If no tournamentId provided, resolve from active project
+    if (!tournamentId) {
+      if (tables.brandingConfig) {
+        try {
+          const scanResponse = await docClient.send(
+            new ScanCommand({
+              TableName: tables.brandingConfig,
+              FilterExpression: '#s = :active AND attribute_exists(tournamentId)',
+              ExpressionAttributeNames: { '#s': 'status' },
+              ExpressionAttributeValues: { ':active': 'active' },
+              Limit: 10,
+            })
+          );
+          tournamentId = scanResponse.Items?.[0]?.tournamentId ? String(scanResponse.Items[0].tournamentId) : '';
+        } catch { /* ignore */ }
+      }
+      // Fallback: first tournament in table
+      if (!tournamentId) {
+        const scanResponse = await docClient.send(
+          new ScanCommand({ TableName: tables.tournaments, Limit: 1 })
+        );
+        tournamentId = scanResponse.Items?.[0]?.tournamentId ? String(scanResponse.Items[0].tournamentId) : '';
+      }
+    }
+
+    if (!tournamentId) {
+      return NextResponse.json({ error: 'No se encontró un torneo configurado' }, { status: 404 });
+    }
+
+    // Use Scan for teams because API-Football imports may not have groupCode,
+    // and the byTournamentAndGroup GSI requires groupCode as range key
     const [tournamentResponse, roundsResponse, teamsResponse, matchesResponse, brandingResponse] =
       await Promise.all([
         docClient.send(
@@ -115,10 +149,9 @@ export async function GET(request: NextRequest) {
           })
         ),
         docClient.send(
-          new QueryCommand({
+          new ScanCommand({
             TableName: tables.teams,
-            IndexName: 'byTournamentAndGroup',
-            KeyConditionExpression: 'tournamentId = :tournamentId',
+            FilterExpression: 'tournamentId = :tournamentId',
             ExpressionAttributeValues: { ':tournamentId': tournamentId },
           })
         ),
@@ -166,7 +199,7 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date().toISOString();
-    const tournamentId = payload.tournament.tournamentId || DEFAULT_TOURNAMENT_ID;
+    const tournamentId = payload.tournament.tournamentId || payload.tournament.code;
 
     await docClient.send(
       new PutCommand({

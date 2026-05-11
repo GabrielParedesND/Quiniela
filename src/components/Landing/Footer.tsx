@@ -70,10 +70,10 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-white mb-4">Información</h4>
             <ul className="space-y-2">
-              <li><a href="#como-funciona" className="text-slate-300 hover:text-white transition-colors text-sm">¿Cómo funciona?</a></li>
-              <li><a href="#" className="text-slate-300 hover:text-white transition-colors text-sm">Premios</a></li>
-              <li><a href="#" className="text-slate-300 hover:text-white transition-colors text-sm">Ranking</a></li>
-              <li><a href="#" className="text-slate-300 hover:text-white transition-colors text-sm">Preguntas frecuentes</a></li>
+              <li><a href="/como-jugar" className="text-slate-300 hover:text-white transition-colors text-sm">¿Cómo funciona?</a></li>
+              <li><a href="/premios" className="text-slate-300 hover:text-white transition-colors text-sm">Premios</a></li>
+              <li><a href="/reglas" className="text-slate-300 hover:text-white transition-colors text-sm">Reglas</a></li>
+              <li><a href="/soporte" className="text-slate-300 hover:text-white transition-colors text-sm">Soporte</a></li>
             </ul>
           </div>
 
@@ -82,7 +82,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li><a href="/terminos" className="text-slate-300 hover:text-white transition-colors text-sm">Términos y condiciones</a></li>
               <li><a href="/privacidad" className="text-slate-300 hover:text-white transition-colors text-sm">Política de privacidad</a></li>
-              <li><a href="/bases" className="text-slate-300 hover:text-white transition-colors text-sm">Bases del concurso</a></li>
+              <li><a href="/reglas" className="text-slate-300 hover:text-white transition-colors text-sm">Reglas</a></li>
               <li><a href="/contacto" className="text-slate-300 hover:text-white transition-colors text-sm">Contacto</a></li>
             </ul>
           </div>
@@ -92,7 +92,7 @@ export default function Footer() {
         <div className="border-t border-white/15 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-300 text-center md:text-left">
-              © 2026 Quiniela Mundialista. Todos los derechos reservados.
+              © {new Date().getFullYear()} {config.content?.pageTitle || 'Quiniela Mundialista'}. Todos los derechos reservados.
             </p>
             <p className="text-xs text-slate-400 text-center md:text-right">
               Promoción válida según calendario oficial del Mundial 2026. Consulta bases completas.

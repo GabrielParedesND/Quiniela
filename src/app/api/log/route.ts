@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
     const tableName = process.env.NEXT_PUBLIC_ACTIVITY_LOGS_TABLE;
     
     if (!tableName) {
-      return NextResponse.json({ error: 'Table not configured' }, { status: 500 });
+      console.warn('Activity logs table not configured');
+      return NextResponse.json({ success: true }); // Silent fail
     }
 
     const timestamp = Date.now();
@@ -38,8 +39,12 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Failed to log activity:', error);
-    return NextResponse.json({ error: 'Failed to log' }, { status: 500 });
+  } catch (error: unknown) {
+    // Silent fail for activity logs - don't break user flow
+    const isResourceNotFound = error && typeof error === 'object' && 'name' in error && error.name === 'ResourceNotFoundException';
+    if (!isResourceNotFound) {
+      console.error('Failed to log activity:', error);
+    }
+    return NextResponse.json({ success: true }); // Return success even on error
   }
 }

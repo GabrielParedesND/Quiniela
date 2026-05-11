@@ -3,23 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev": "npx sst dev --stage dev next dev",
     "build": "next build",
-    "dev": "sst dev next dev",
-    "start": "next start",
-    "deploy": "sst deploy",
-    "remove": "sst remove",
+    "deploy": "npx sst deploy --stage dev",
+    "deploy:staging": "npx sst deploy --stage staging",
+    "deploy:prod": "npx sst deploy --stage production",
+    "remove": "npx sst remove --stage dev",
+    "remove:staging": "npx sst remove --stage staging",
+    "remove:prod": "npx sst remove --stage production",
+    "console": "npx sst console --stage dev",
+    "typecheck": "tsc --noEmit",
     "branding:sync:s3": "node scripts/sync-branding-s3.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.987.0",
     "@aws-sdk/client-s3": "^3.998.0",
     "@aws-sdk/lib-dynamodb": "^3.987.0",
+    "@tailwindcss/typography": "^0.5.19",
     "amazon-cognito-identity-js": "^6.3.16",
     "motion": "^12.34.3",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "sst": "3.17.38"
+    "sst": "^4.12.9"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

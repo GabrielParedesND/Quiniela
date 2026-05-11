@@ -1,7 +1,7 @@
 'use client';
 
 interface Team {
-  id: number;
+  id: string;
   name: string;
   short: string;
   flagUrl: string;
@@ -15,6 +15,8 @@ interface MatchCardProps {
   isLocked: boolean;
   predictionA: string;
   predictionB: string;
+  isSpecial?: boolean;
+  multiplier?: number;
   onPredictionChange?: (team: 'a' | 'b', value: string) => void;
 }
 
@@ -26,19 +28,27 @@ export default function MatchCard({
   isLocked,
   predictionA,
   predictionB,
+  isSpecial,
+  multiplier,
   onPredictionChange,
 }: MatchCardProps) {
   return (
     <div
       className={`rounded-2xl shadow-sm border overflow-hidden ${isLocked ? 'opacity-60' : ''}`}
-      style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+      style={{
+        backgroundColor: 'var(--color-surface)',
+        borderColor: isSpecial ? 'var(--color-accent)' : 'var(--color-border)',
+        borderWidth: isSpecial ? '2px' : '1px',
+      }}
     >
       <div
         className="p-2 flex justify-between items-center text-[8px] font-black uppercase tracking-widest"
-        style={{ backgroundColor: 'var(--color-surface2)', color: 'var(--color-muted)' }}
+        style={{ backgroundColor: isSpecial ? 'var(--color-accent)' : 'var(--color-surface2)', color: isSpecial ? 'white' : 'var(--color-muted)' }}
       >
-        <span>
+        <span className="flex items-center gap-1.5">
+          {isSpecial && <span>⚡</span>}
           Jornada {jornada} • {dateLabel}
+          {isSpecial && multiplier && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/20 text-white">x{multiplier}</span>}
         </span>
         <span className="font-bold" style={{ color: isLocked ? 'var(--color-muted)' : 'var(--color-accent)' }}>
           {isLocked ? 'Cerrado' : 'Abierto'}
@@ -48,8 +58,7 @@ export default function MatchCard({
         <div className="text-center w-1/3">
           <img
             src={teamA.flagUrl}
-            className="w-10 h-7 mx-auto rounded-sm border mb-1 shadow-sm"
-            style={{ borderColor: 'var(--color-border)' }}
+            className="h-8 w-auto mx-auto mb-1"
             alt={teamA.name}
           />
           <p className="text-[9px] font-black uppercase" style={{ color: 'var(--color-text)' }}>
@@ -94,8 +103,7 @@ export default function MatchCard({
         <div className="text-center w-1/3">
           <img
             src={teamB.flagUrl}
-            className="w-10 h-7 mx-auto rounded-sm border mb-1 shadow-sm"
-            style={{ borderColor: 'var(--color-border)' }}
+            className="h-8 w-auto mx-auto mb-1"
             alt={teamB.name}
           />
           <p className="text-[9px] font-black uppercase" style={{ color: 'var(--color-text)' }}>
