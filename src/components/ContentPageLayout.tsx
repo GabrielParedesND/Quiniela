@@ -38,8 +38,15 @@ export default function ContentPageLayout({ title, children }: ContentPageLayout
 
       <div className="relative flex flex-col min-h-screen" style={{ zIndex: 1 }}>
         {/* Header */}
-        <header className="sticky top-0 z-50 shadow-lg" style={{ backgroundColor: 'var(--color-primary)' }}>
-          <div className="max-w-4xl mx-auto px-4 py-2 flex items-center gap-4">
+        <header className="sticky top-0 z-50 shadow-lg relative overflow-hidden" style={{ backgroundColor: 'var(--color-primary)' }}>
+          {/* Background image matching main app Navbar */}
+          <img
+            src="/assets/LAYOUT/header.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          />
+          <div className="relative max-w-4xl mx-auto px-4 py-2 flex items-center gap-4">
             <button
               onClick={() => router.back()}
               className="text-white hover:opacity-70 transition"
@@ -53,11 +60,11 @@ export default function ContentPageLayout({ title, children }: ContentPageLayout
               <img
                 src={config.assets.logos.main}
                 alt="Logo"
-                className="w-28 h-auto cursor-pointer"
+                className="w-20 h-auto cursor-pointer"
                 onClick={() => router.push('/')}
               />
             ) : null}
-            <h1 className="text-sm font-bold text-white uppercase tracking-wider truncate">{title}</h1>
+            <h1 className="text-xs font-bold text-white uppercase tracking-wider truncate" style={{ color: 'var(--color-primaryText)' }}>{title}</h1>
           </div>
         </header>
 
@@ -68,39 +75,26 @@ export default function ContentPageLayout({ title, children }: ContentPageLayout
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="text-white py-12 px-4 mt-auto" style={{ backgroundColor: 'var(--color-surface2)' }}>
-          <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-              <div className="text-center md:text-left">
-                {config.assets?.logos?.large && (
-                  <img src={config.assets.logos.large} alt="Logo" className="w-40 h-auto mx-auto md:mx-0 mb-4" />
-                )}
-                <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
-                  {config.meta?.appDescription || ''}
-                </p>
-              </div>
-              <div className="text-center">
-                <h5 className="text-sm font-black uppercase mb-3" style={{ color: 'var(--color-text)' }}>Enlaces</h5>
-                <ul className="space-y-2 text-xs" style={{ color: 'var(--color-muted)' }}>
-                  <li><a href="/como-jugar" className="hover:opacity-70 transition">Como Jugar</a></li>
-                  <li><a href="/premios" className="hover:opacity-70 transition">Premios</a></li>
-                  <li><a href="/reglas" className="hover:opacity-70 transition">Reglas</a></li>
-                  <li><a href="/soporte" className="hover:opacity-70 transition">Soporte</a></li>
-                </ul>
-              </div>
-              <div className="text-center md:text-right">
-                <h5 className="text-sm font-black uppercase mb-3" style={{ color: 'var(--color-text)' }}>Legal</h5>
-                <ul className="space-y-2 text-xs" style={{ color: 'var(--color-muted)' }}>
-                  <li><a href="/terminos" className="hover:opacity-70 transition">Terminos y Condiciones</a></li>
-                  <li><a href="/privacidad" className="hover:opacity-70 transition">Politica de Privacidad</a></li>
-                  <li><a href="/contacto" className="hover:opacity-70 transition">Contacto</a></li>
-                </ul>
-              </div>
+        {/* Footer - matching AppShell */}
+        <footer className="py-8 px-4 mt-auto relative overflow-hidden" style={{ backgroundColor: 'var(--color-surface2)' }}>
+          <img
+            src="/assets/LAYOUT/footer.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          />
+          <div className="relative max-w-4xl mx-auto sm:px-4 text-white">
+            <div className="flex flex-col items-center mb-6">
+              {config.assets?.logos?.large && (
+                <img src={config.assets.logos.large} alt="Logo" className="w-32 h-auto mb-3" />
+              )}
             </div>
-            <div className="border-t pt-6 text-center" style={{ borderColor: 'var(--color-border)' }}>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--color-muted)' }}>
-                © {new Date().getFullYear()} {config.content?.pageTitle || 'Quiniela Mundialista'} - Todos los derechos reservados
+            <div className="border-t border-white/20 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <p className="text-[10px] font-semibold">
+                {config.content?.pageTitle || 'Quiniela Mundialista'}
+              </p>
+              <p className="text-[9px] uppercase tracking-wider opacity-70">
+                © {new Date().getFullYear()} • Todos los derechos reservados
               </p>
             </div>
           </div>

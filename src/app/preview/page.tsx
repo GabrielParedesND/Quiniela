@@ -181,9 +181,9 @@ export default function PreviewPage() {
   const renderDashboard = () => (
     <section className="fade-in space-y-6">
       <UserCard fullName="Usuario Demo" avatarUrl={AVATAR} points={150} onViewResults={() => setCurrentPage('results')} />
-      <div className="grid grid-cols-1 gap-3">
-        <NavigationCard icon={<img src="/assets/ICON PRON RESULTADOS 48X48.svg" alt="" className="w-8 h-8" />} title="Pronosticar Resultados" description="Ingresa tus marcadores de la jornada" onClick={() => setCurrentPage('predictions')} color="blue" />
-        <NavigationCard icon={<img src="/assets/ICON POS DE EQUIPOS 48X48.svg" alt="" className="w-8 h-8" />} title="Posiciones de Equipos" description="Mira cómo avanzan los grupos oficiales" onClick={() => setCurrentPage('teams')} color="emerald" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <NavigationCard icon={<img src="/assets/ICON PRON RESULTADOS 48X48.svg" alt="" className="w-7 h-7" />} title="Pronosticar Resultados" description="Ingresa tus marcadores de la jornada" onClick={() => setCurrentPage('predictions')} color="blue" />
+        <NavigationCard icon={<img src="/assets/ICON POS DE EQUIPOS 48X48.svg" alt="" className="w-7 h-7" />} title="Posiciones de Equipos" description="Mira cómo avanzan los grupos oficiales" onClick={() => setCurrentPage('teams')} color="emerald" />
       </div>
       <PromoBanner />
     </section>

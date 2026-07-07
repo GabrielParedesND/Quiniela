@@ -8,9 +8,10 @@ interface RankingUser {
 
 interface RankingTableProps {
   users: RankingUser[];
+  userPosition?: number;
 }
 
-export default function RankingTable({ users }: RankingTableProps) {
+export default function RankingTable({ users, userPosition }: RankingTableProps) {
   const getPhaseColor = (phase: string) => {
     if (phase === 'Cita con la Historia') return { bg: 'var(--color-accent)', text: 'var(--color-primaryText)' };
     if (phase === 'Duelo de Gigantes') return { bg: 'var(--color-danger)', text: 'var(--color-primaryText)' };
@@ -32,6 +33,11 @@ export default function RankingTable({ users }: RankingTableProps) {
       </div>
     );
   }
+
+  // Separate the current user if they're outside the top 20
+  const meEntry = users.find((u) => u.name.includes('(Tú)'));
+  const meInTop20 = users.slice(0, 20).some((u) => u.name.includes('(Tú)'));
+  const displayUsers = meInTop20 ? users : users.filter((u) => !u.name.includes('(Tú)'));
 
   return (
     <div
@@ -57,19 +63,20 @@ export default function RankingTable({ users }: RankingTableProps) {
               className="px-2 sm:px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest"
               style={{ color: 'var(--color-muted)' }}
             >
-              Fase
+              Pts
             </th>
             <th
               className="px-2 sm:px-4 py-3 text-center text-[10px] font-black uppercase tracking-widest"
               style={{ color: 'var(--color-muted)' }}
             >
-              Pts
+              Fase
             </th>
           </tr>
         </thead>
         <tbody className="divide-y text-[11px]" style={{ borderColor: 'var(--color-border)' }}>
-          {users.map((u, i) => {
+          {displayUsers.map((u, i) => {
             const isMe = u.name.includes('(Tú)');
+            const displayPosition = isMe && userPosition ? userPosition : i + 1;
             const phaseColors = getPhaseColor(u.phase);
             return (
               <tr
@@ -84,10 +91,13 @@ export default function RankingTable({ users }: RankingTableProps) {
                   className="px-2 sm:px-4 py-3 font-black"
                   style={{ color: i < 3 ? 'var(--color-primary)' : 'var(--color-muted)' }}
                 >
-                  #{i + 1}
+                  #{displayPosition}
                 </td>
                 <td className="px-2 sm:px-4 py-3 font-bold whitespace-nowrap" style={{ color: 'var(--color-text)' }}>
                   {u.name}
+                </td>
+                <td className="px-2 sm:px-4 py-3 text-center font-black" style={{ color: 'var(--color-text)' }}>
+                  {u.pts}
                 </td>
                 <td className="px-2 sm:px-4 py-3 text-center">
                   <span
@@ -97,12 +107,47 @@ export default function RankingTable({ users }: RankingTableProps) {
                     {u.phase}
                   </span>
                 </td>
-                <td className="px-2 sm:px-4 py-3 text-center font-black" style={{ color: 'var(--color-text)' }}>
-                  {u.pts}
-                </td>
               </tr>
             );
           })}
+          {/* Show current user below the top 20 with their real position */}
+          {!meInTop20 && meEntry && userPosition && (
+            <>
+              <tr>
+                <td colSpan={4} className="px-4 py-1 text-center">
+                  <span className="text-[9px] font-bold tracking-widest" style={{ color: 'var(--color-muted)' }}>...</span>
+                </td>
+              </tr>
+              <tr
+                className="border-l-4"
+                style={{
+                  backgroundColor: 'var(--color-surface2)',
+                  borderLeftColor: 'var(--color-primary)',
+                }}
+              >
+                <td
+                  className="px-2 sm:px-4 py-3 font-black"
+                  style={{ color: 'var(--color-muted)' }}
+                >
+                  #{userPosition}
+                </td>
+                <td className="px-2 sm:px-4 py-3 font-bold whitespace-nowrap" style={{ color: 'var(--color-text)' }}>
+                  {meEntry.name}
+                </td>
+                <td className="px-2 sm:px-4 py-3 text-center font-black" style={{ color: 'var(--color-text)' }}>
+                  {meEntry.pts}
+                </td>
+                <td className="px-2 sm:px-4 py-3 text-center">
+                  <span
+                    className="inline-block whitespace-nowrap px-2 py-0.5 rounded-full text-[7px] font-black uppercase italic"
+                    style={{ backgroundColor: getPhaseColor(meEntry.phase).bg, color: getPhaseColor(meEntry.phase).text }}
+                  >
+                    {meEntry.phase}
+                  </span>
+                </td>
+              </tr>
+            </>
+          )}
         </tbody>
       </table>
     </div>

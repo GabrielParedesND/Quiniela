@@ -15,7 +15,7 @@ export interface UserProfile {
   genero: string;
 }
 
-export const GENERO_OPTIONS = ['Masculino', 'Femenino', 'Otro', 'Prefiero no decir'] as const;
+export const GENERO_OPTIONS = ['Masculino', 'Femenino'] as const;
 
 type EditableProfileFields = Pick<
   UserProfile,
@@ -316,6 +316,9 @@ export const validateAndNormalizeProfileFields = (
   }
   if (!/^\d{8}$/.test(tel)) {
     return { valid: false, error: 'El teléfono debe tener exactamente 8 dígitos' };
+  }
+  if (tel.startsWith('0')) {
+    return { valid: false, error: 'El número de teléfono no puede empezar con 0' };
   }
   if (!isValidDateOnly(fechaNacimiento)) {
     return { valid: false, error: 'La fecha de nacimiento no es válida' };

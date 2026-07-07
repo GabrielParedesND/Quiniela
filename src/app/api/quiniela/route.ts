@@ -8,6 +8,8 @@ import {
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { getPhase, QuinielaSnapshot, TeamStanding } from '@/lib/db/quiniela';
+import { computeMatchDeadline, PredictionDeadlineRule, resolveRule } from '@/lib/deadline';
+import { logActivityServer } from '@/lib/logger/server-activity';
 
 const client = new DynamoDBClient({
   region: process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1',
@@ -166,6 +168,7 @@ const computeStandings = async (
     status: 'played' | 'upcoming';
     scoreA?: number;
     scoreB?: number;
+    apiRound?: string;
   }>
 ): Promise<Record<string, TeamStanding[]>> => {
   const tables = getTables();
@@ -191,7 +194,7 @@ const computeStandings = async (
             teamName: String(row.teamName),
             teamLogo: String(row.teamLogo),
             group,
-            rank: Number(row.rank),
+            rank: Number(row.originalRank ?? row.rank),
             played: Number(row.played || 0),
             won: Number(row.won || 0),
             drawn: Number(row.drawn || 0),
@@ -216,8 +219,26 @@ const computeStandings = async (
   }
 
   // Fallback: compute from matches
+  // First, try to infer group from apiRound (e.g. "Group A - 1" → "Group A")
+  const teamGroupMap = new Map<string, string>();
+  for (const match of matches) {
+    if (match.apiRound && match.apiRound.startsWith('Group')) {
+      const group = match.apiRound.replace(/\s*-\s*\d+$/, '').trim();
+      if (group) {
+        teamGroupMap.set(match.teamAId, group);
+        teamGroupMap.set(match.teamBId, group);
+      }
+    }
+  }
+
+  // Use inferred group if team has no group assigned
+  const teamsWithGroup = teams.map((t) => ({
+    ...t,
+    group: t.group || teamGroupMap.get(t.id) || 'General',
+  }));
+
   const pointsByTeam: Record<string, { pts: number; pj: number; pg: number; pe: number; pp: number; gf: number; gc: number }> = {};
-  for (const team of teams) pointsByTeam[team.id] = { pts: 0, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0 };
+  for (const team of teamsWithGroup) pointsByTeam[team.id] = { pts: 0, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0 };
 
   for (const match of matches) {
     if (match.status !== 'played' || match.scoreA == null || match.scoreB == null) continue;
@@ -231,10 +252,10 @@ const computeStandings = async (
   }
 
   const result: Record<string, TeamStanding[]> = {};
-  const groups = [...new Set(teams.map((t) => t.group || 'General'))];
+  const groups = [...new Set(teamsWithGroup.map((t) => t.group))];
   for (const group of groups) {
-    result[group] = teams
-      .filter((team) => (team.group || 'General') === group)
+    result[group] = teamsWithGroup
+      .filter((team) => team.group === group)
       .map((team, idx) => {
         const s = pointsByTeam[team.id] || { pts: 0, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0 };
         return {
@@ -265,6 +286,20 @@ const computeStandings = async (
 const getSnapshot = async (tournamentId: string, userId?: string): Promise<QuinielaSnapshot> => {
   const tables = getTables();
 
+  // Fetch tournament record to read predictionDeadlineRule
+  let predictionDeadlineRule: PredictionDeadlineRule = 'per-match';
+  try {
+    const tournamentResponse = await docClient.send(
+      new GetCommand({
+        TableName: tables.tournaments,
+        Key: { tournamentId },
+      })
+    );
+    predictionDeadlineRule = resolveRule(tournamentResponse.Item?.predictionDeadlineRule as string | undefined);
+  } catch (err) {
+    console.warn('[getSnapshot] Failed to read tournament record for deadline rule:', (err as Error).message);
+  }
+
   // Use Scan with filter instead of GSI query because teams imported from
   // API-Football may not have groupCode, and the byTournamentAndGroup GSI
   // requires groupCode as range key (items without it won't appear in the index)
@@ -285,17 +320,6 @@ const getSnapshot = async (tournamentId: string, userId?: string): Promise<Quini
     })
   );
 
-  const rankingResponse = await docClient.send(
-    new QueryCommand({
-      TableName: tables.scoreAggregate,
-      IndexName: 'byTournamentAndPoints',
-      KeyConditionExpression: 'tournamentId = :tournamentId',
-      ExpressionAttributeValues: { ':tournamentId': tournamentId },
-      ScanIndexForward: false,
-      Limit: 20,
-    })
-  );
-
   const rawTeams = (teamsResponse.Items || []).map((item) => ({
     id: String(item.teamId),
     name: String(item.name),
@@ -309,17 +333,25 @@ const getSnapshot = async (tournamentId: string, userId?: string): Promise<Quini
     return cmsStatus === 'final' ? 'played' : 'upcoming';
   };
 
-  // Build jornada map: each unique kickoff date (YYYY-MM-DD) = 1 jornada, sorted chronologically
+  // Build jornada map: each unique kickoff date (YYYY-MM-DD) in Guatemala timezone = 1 jornada, sorted chronologically
   const matchItems = matchesResponse.Items || [];
+
+  // Helper to get the date in Guatemala timezone (UTC-6)
+  const getGuatemalaDate = (isoString: string): string => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-CA', { timeZone: 'America/Guatemala' }); // en-CA gives YYYY-MM-DD format
+  };
+
   const uniqueKickoffDates = [
-    ...new Set(matchItems.map((item) => String(item.kickoffAt || '').substring(0, 10)).filter(Boolean)),
+    ...new Set(matchItems.map((item) => getGuatemalaDate(String(item.kickoffAt || ''))).filter(Boolean)),
   ].sort();
   const dateToJornada = new Map(uniqueKickoffDates.map((d, i) => [d, i + 1]));
 
   const rawMatches = matchItems
     .map((item) => {
       const kickoffAt = String(item.kickoffAt || '');
-      const kickoffDate = kickoffAt.substring(0, 10);
+      const kickoffDate = getGuatemalaDate(kickoffAt);
       return {
         id: String(item.matchId),
         jornada: dateToJornada.get(kickoffDate) || 0,
@@ -335,9 +367,10 @@ const getSnapshot = async (tournamentId: string, userId?: string): Promise<Quini
         scoreB: item.officialAwayScore != null ? Number(item.officialAwayScore) : undefined,
         isSpecial: item.isSpecial === true,
         multiplier: item.multiplier ? Number(item.multiplier) : undefined,
+        closesAt: item.closesAt ? String(item.closesAt) : undefined,
       };
     })
-    .sort((a, b) => a.jornada - b.jornada || a.id.localeCompare(b.id));
+    .sort((a, b) => a.jornada - b.jornada || a.kickoffAt.localeCompare(b.kickoffAt) || a.id.localeCompare(b.id));
 
   // Debug: log unique apiRound values
   const uniqueRounds = [...new Set(rawMatches.map(m => m.apiRound).filter(Boolean))];
@@ -385,8 +418,12 @@ const getSnapshot = async (tournamentId: string, userId?: string): Promise<Quini
   }
 
   // Compute points per jornada dynamically based on actual rounds
+  // Only include jornadas that have at least one played match
   const allJornadas = [...new Set(rawMatches.map((m) => m.jornada))].sort((a, b) => a - b);
-  const pointsByJornada = allJornadas.map((jornada) => {
+  const playedJornadas = allJornadas.filter((jornada) =>
+    rawMatches.some((match) => match.jornada === jornada && match.status === 'played')
+  );
+  const pointsByJornada = playedJornadas.map((jornada) => {
     const playedInRound = rawMatches.filter((match) => match.jornada === jornada && match.status === 'played');
     return playedInRound.reduce((total, match) => {
       const prediction = userPredictions[match.id];
@@ -431,7 +468,7 @@ const getSnapshot = async (tournamentId: string, userId?: string): Promise<Quini
   }
 
   // Apply streak multiplier only if enabled in CMS
-  const jornadaParticipation = allJornadas.map((jornada) => {
+  const jornadaParticipation = playedJornadas.map((jornada) => {
     const jornadaMatches = rawMatches.filter((m) => m.jornada === jornada);
     return jornadaMatches.some((m) => userPredictions[m.id] != null);
   });
@@ -453,14 +490,63 @@ const getSnapshot = async (tournamentId: string, userId?: string): Promise<Quini
     }
   }
 
-  const rankingUsers = (rankingResponse.Items || []).map((item) => {
-    const points = Number(item.points || 0);
-    return {
-      name: String(item.displayName || 'Usuario'),
-      pts: points,
-      phase: getPhase(points),
-    };
-  });
+  // ===== RANKING: Read from ScoreAggregate (same source as CMS reports) =====
+  // This ensures quiniela-v1 and CMS always show the same ranking.
+  // ScoreAggregate is kept up-to-date by sync-results Lambda.
+  // Paginate to ensure ALL records are fetched.
+  const scoreAggregateItems: Record<string, unknown>[] = [];
+  let saLastKey: Record<string, unknown> | undefined;
+  do {
+    const saResponse = await docClient.send(
+      new QueryCommand({
+        TableName: tables.scoreAggregate,
+        IndexName: 'byTournamentAndPoints',
+        KeyConditionExpression: 'tournamentId = :tournamentId',
+        ExpressionAttributeValues: { ':tournamentId': tournamentId },
+        ScanIndexForward: false,
+        ExclusiveStartKey: saLastKey,
+      })
+    );
+    scoreAggregateItems.push(...(saResponse.Items || []));
+    saLastKey = saResponse.LastEvaluatedKey;
+  } while (saLastKey);
+
+  // Sort with same tiebreaker as CMS: points desc → correctPredictions desc → displayName asc
+  const sortedScoreAggregates = scoreAggregateItems
+    .filter((item) => item.scope === 'global')
+    .sort((a, b) => {
+      const ptsA = Number(a.points || 0);
+      const ptsB = Number(b.points || 0);
+      if (ptsB !== ptsA) return ptsB - ptsA;
+      const exA = Number(a.correctPredictions || 0);
+      const exB = Number(b.correctPredictions || 0);
+      if (exB !== exA) return exB - exA;
+      return String(a.displayName || '').localeCompare(String(b.displayName || ''));
+    });
+
+  // Build ranking entries from ScoreAggregate
+  const allRankingEntries = sortedScoreAggregates.map((item) => ({
+    uid: String(item.refId || ''),
+    name: String(item.displayName || 'Usuario'),
+    pts: Number(item.points || 0),
+    exacts: Number(item.correctPredictions || 0),
+    phase: getPhase(Number(item.points || 0)),
+  }));
+
+  // Find the current user's real position from the authoritative ScoreAggregate record
+  let userPosition = 0;
+  if (userId) {
+    const userScoreRecord = sortedScoreAggregates.find((item) => String(item.refId || '') === userId);
+    if (userScoreRecord?.currentPosition != null) {
+      userPosition = Number(userScoreRecord.currentPosition);
+    } else {
+      // Fallback: if currentPosition not set (new user not yet in recalculation cycle)
+      userPosition = allRankingEntries.findIndex((e) => e.uid === userId) + 1;
+    }
+  }
+
+  // Return only top 20 for display (without uid)
+  const rankingUsers = allRankingEntries.slice(0, 20).map(({ uid: _uid, ...rest }) => rest);
 
   return {
     teams: rawTeams,
@@ -470,36 +556,19 @@ const getSnapshot = async (tournamentId: string, userId?: string): Promise<Quini
     userPredictions,
     points: pointsByJornada.reduce((total, value) => total + value, 0),
     pointsByJornada,
+    userPosition,
+    totalParticipants: allRankingEntries.length,
     streak: streakEnabled ? {
       current: currentStreak,
       threshold: streakThreshold,
       multiplier: streakMultiplier,
       active: streakActive,
     } : undefined,
+    predictionDeadlineRule,
   };
 };
 
-const getUserDisplayName = async (userId: string): Promise<string> => {
-  const userResponse = await docClient.send(
-    new GetCommand({
-      TableName: process.env.DYNAMO_USERS_TABLE,
-      Key: { userId },
-    })
-  );
 
-  const user = userResponse.Item as
-    | {
-        nombres?: string;
-        apellidos?: string;
-        email?: string;
-      }
-    | undefined;
-
-  const fullName = `${user?.nombres || ''} ${user?.apellidos || ''}`.trim();
-  if (fullName) return fullName;
-  if (user?.email) return user.email;
-  return 'Usuario';
-};
 
 export async function GET(request: NextRequest) {
   try {
@@ -519,6 +588,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let parsedUserId = '';
   try {
     const tables = getTables();
     const { userId, predictions, tournamentId: requestedTournamentId } = (await request.json()) as {
@@ -527,6 +597,7 @@ export async function POST(request: NextRequest) {
       tournamentId?: string;
     };
 
+    parsedUserId = userId || '';
     const tournamentId = requestedTournamentId || await resolveActiveTournamentId();
 
     if (!userId) {
@@ -538,6 +609,46 @@ export async function POST(request: NextRequest) {
 
     const now = new Date().toISOString();
     const predictionEntries = Object.entries(predictions);
+
+    // Build a map of match deadlines to enforce time-based locking on the server
+    const matchesResponse = await docClient.send(
+      new QueryCommand({
+        TableName: tables.matches,
+        IndexName: 'byTournamentAndKickoff',
+        KeyConditionExpression: 'tournamentId = :tournamentId',
+        ExpressionAttributeValues: { ':tournamentId': tournamentId },
+      })
+    );
+
+    // Read tournament record to determine the deadline rule
+    let rule: PredictionDeadlineRule = 'per-match';
+    try {
+      const tournamentResponse = await docClient.send(
+        new GetCommand({
+          TableName: tables.tournaments,
+          Key: { tournamentId },
+        })
+      );
+      rule = resolveRule(tournamentResponse.Item?.predictionDeadlineRule as string | undefined);
+    } catch (err) {
+      console.warn('[quiniela POST] Failed to read tournament record for deadline rule:', (err as Error).message);
+    }
+
+    const matchDeadlineMap = new Map<string, string>();
+    for (const item of matchesResponse.Items || []) {
+      const matchId = String(item.matchId);
+      const deadline = computeMatchDeadline(
+        {
+          kickoffAt: item.kickoffAt ? String(item.kickoffAt) : undefined,
+          closesAt: item.closesAt ? String(item.closesAt) : undefined,
+        },
+        rule
+      );
+      if (deadline) matchDeadlineMap.set(matchId, deadline);
+    }
+
+    const nowMs = Date.now();
+    let skippedPastDeadline = 0;
 
     for (const [matchId, prediction] of predictionEntries) {
       const predictedHomeScore = Number(prediction.a);
@@ -552,6 +663,13 @@ export async function POST(request: NextRequest) {
         predictedHomeScore < 0 ||
         predictedAwayScore < 0
       ) {
+        continue;
+      }
+
+      // Reject predictions for matches past their deadline
+      const matchDeadline = matchDeadlineMap.get(matchId);
+      if (matchDeadline && new Date(matchDeadline).getTime() <= nowMs) {
+        skippedPastDeadline++;
         continue;
       }
 
@@ -573,27 +691,33 @@ export async function POST(request: NextRequest) {
     }
 
     const snapshot = await getSnapshot(tournamentId, userId);
-    const displayName = await getUserDisplayName(userId);
 
-    await docClient.send(
-      new PutCommand({
-        TableName: tables.scoreAggregate,
-        Item: {
-          id: `${tournamentId}#global#${userId}`,
-          tournamentId,
-          scope: 'global',
-          refId: userId,
-          displayName,
-          points: snapshot.points,
-          updatedAt: now,
-        },
-      })
-    );
+    // Log successful prediction save
+    logActivityServer({
+      userId,
+      activityType: 'PREDICTIONS_SAVED',
+      metadata: {
+        tournamentId,
+        predictionsCount: predictionEntries.length,
+        skippedPastDeadline,
+        points: snapshot.points,
+      },
+    });
 
-    const refreshedSnapshot = await getSnapshot(tournamentId, userId);
-    return NextResponse.json(refreshedSnapshot);
+    return NextResponse.json(snapshot);
   } catch (error: unknown) {
     console.error('Error saving predictions:', error);
+
+    if (parsedUserId) {
+      logActivityServer({
+        userId: parsedUserId,
+        activityType: 'PREDICTIONS_SAVE_FAILED',
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      });
+    }
+
     return NextResponse.json({ error: 'No se pudieron guardar pronosticos' }, { status: 500 });
   }
 }

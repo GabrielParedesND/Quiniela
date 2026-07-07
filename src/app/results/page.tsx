@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getUserId, isAuthenticated } from '@/lib/auth/cognito';
 import { useUser } from '@/contexts/UserContext';
 import { isProfileComplete } from '@/lib/db/users';
+import { IS_DEMO_MODE } from '@/lib/demo-mode';
 import AppShell from '@/components/AppShell';
 import LoadingContent from '@/components/LoadingContent';
 import PageHeader from '@/components/PageHeader';
@@ -33,6 +34,7 @@ export default function ResultsPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [rankingUsers, setRankingUsers] = useState<RankingUser[]>([]);
+  const [userPosition, setUserPosition] = useState<number>(0);
   const [initialized, setInitialized] = useState(false);
   const [snapshotLoading, setSnapshotLoading] = useState(true);
   const [snapshotError, setSnapshotError] = useState('');
@@ -67,7 +69,19 @@ export default function ResultsPage() {
         setTeams(snapshot.teams);
         setMatches(snapshot.matches);
         setRankingUsers(snapshot.rankingUsers);
+        if (snapshot.userPosition) setUserPosition(snapshot.userPosition);
         if (snapshot.streak) setStreak(snapshot.streak);
+
+        // Auto-select the current/nearest jornada (same logic as predictions page)
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guatemala' });
+        const getMatchDateGT = (kickoffAt: string): string =>
+          new Date(kickoffAt).toLocaleDateString('en-CA', { timeZone: 'America/Guatemala' });
+        const allJornadas = Array.from(new Set(snapshot.matches.map((m: Match) => m.jornada))).sort((a, b) => a - b);
+        const currentJornada = allJornadas.find((j) =>
+          snapshot.matches.some((m: Match) => m.jornada === j && m.kickoffAt && getMatchDateGT(m.kickoffAt) >= todayStr)
+        );
+        setSelectedJornada(currentJornada ?? allJornadas[allJornadas.length - 1] ?? 1);
+
         setInitialized(true);
       } catch (error) {
         console.error('Error loading results snapshot:', error);
@@ -162,13 +176,37 @@ export default function ResultsPage() {
     );
   }
 
-  const playedMatches = matches.filter((m) => m.status === 'played');
+  const playedMatches = IS_DEMO_MODE
+    ? matches.filter((m) => m.scoreA != null && m.scoreB != null)
+    : matches.filter((m) => m.status === 'played');
   const phase = getPhase(points);
   const fullName = `${user.nombres} ${user.apellidos}`;
-  const allUsers = [...rankingUsers, { name: `${fullName} (Tú)`, pts: points, phase }].sort(
-    (a, b) => b.pts - a.pts
+  // Filter out the current user from rankingUsers to avoid duplicates, then add them back with "(Tú)" label
+  const otherUsers = rankingUsers.filter((u) => {
+    const normalizedName = u.name.toLowerCase().trim();
+    const currentName = fullName.toLowerCase().trim();
+    return normalizedName !== currentName && !normalizedName.includes('(tú)');
+  });
+
+  // Count current user's exact predictions for tiebreaker
+  const currentUserExacts = playedMatches.reduce((count, m) => {
+    const pred = predictions[m.id];
+    if (!pred) return count;
+    const pA = parseInt(pred.a as string);
+    const pB = parseInt(pred.b as string);
+    if (pA === m.scoreA && pB === m.scoreB) return count + 1;
+    return count;
+  }, 0);
+
+  const allUsers = [...otherUsers, { name: `${fullName} (Tú)`, pts: points, exacts: currentUserExacts, phase }].sort(
+    (a, b) => {
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      if ((b.exacts || 0) !== (a.exacts || 0)) return (b.exacts || 0) - (a.exacts || 0);
+      return a.name.localeCompare(b.name);
+    }
   );
-  const position = allUsers.findIndex((u) => u.name.includes('(Tú)')) + 1;
+  // Use the real position from the API (computed from ALL participants), fallback to local calculation
+  const position = userPosition || allUsers.findIndex((u) => u.name.includes('(Tú)')) + 1;
 
   const getPhaseBg = () => {
     if (phase === 'Cita con la Historia') return 'var(--color-accent)';
@@ -188,19 +226,19 @@ export default function ResultsPage() {
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6" style={{ color: 'var(--color-muted)' }}>
             Puntos por Jornada
           </h3>
-          {pointsByJornada.length === 0 || pointsByJornada.every(p => p === 0) ? (
+          {pointsByJornada.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 text-center">
               <span className="text-2xl mb-2">📊</span>
               <p className="text-[10px] font-bold" style={{ color: 'var(--color-muted)' }}>Tus puntos apareceran aqui conforme avancen las jornadas.</p>
             </div>
           ) : (
             <div className="overflow-x-auto -mx-2 px-2">
-              <div className="flex items-end h-36 gap-2 pb-1" style={{ minWidth: pointsByJornada.length > 6 ? `${pointsByJornada.length * 44}px` : undefined }}>
+              <div className="flex items-end justify-center h-36 gap-2 pb-1" style={{ minWidth: pointsByJornada.length > 6 ? `${pointsByJornada.length * 44}px` : undefined }}>
                 {pointsByJornada.map((p, i) => {
                   const maxPoints = Math.max(...pointsByJornada, 1);
                   const height = Math.max((p / maxPoints) * 100, 8);
                   return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1" style={{ minWidth: '36px' }}>
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1" style={{ minWidth: '36px', maxWidth: '48px' }}>
                       <span className="text-[10px] font-black" style={{ color: 'var(--color-primary)' }}>
                         {p}
                       </span>
@@ -263,7 +301,7 @@ export default function ResultsPage() {
         )}
 
         <div className="space-y-3">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] px-2" style={{ color: 'var(--color-muted)' }}>
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg inline-block backdrop-blur-sm" style={{ color: '#ffffff', backgroundColor: 'rgba(0,0,0,0.4)' }}>
             Detalle de Resultados
           </h3>
 
@@ -350,34 +388,43 @@ export default function ResultsPage() {
         </div>
 
         <div className="space-y-3">
-          <div className="rounded-3xl p-6 text-white shadow-xl relative overflow-hidden mb-2" style={{ backgroundColor: 'var(--color-primary)' }}>
-            <div 
-              className="absolute inset-0 opacity-30"
-              style={{
-                backgroundImage: config.assets.backgrounds.rankingCard
-                  ? `url('${config.assets.backgrounds.rankingCard}')`
-                  : `url('${config.assets.cardBackgrounds.blue}')`,
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'left top',
-              }}
+          <div className="rounded-2xl text-white shadow-xl relative overflow-hidden mb-2 min-h-[140px] sm:min-h-[180px] flex items-center">
+            {/* Layer 1: background */}
+            <img
+              src="/assets/LAYERING/fondo-card-capa-1.png"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            />
+            {/* Layer 2: decorative object - bottom right */}
+            <img
+              src="/assets/LAYERING/fondo-card-capa-2.png"
+              alt=""
+              aria-hidden="true"
+              className="absolute bottom-0 right-0 h-auto w-[90%] sm:h-full sm:w-auto pointer-events-none object-contain object-right-bottom"
             />
             
-            <div className="relative z-10 flex justify-end">
+            <div className="relative z-10 w-full p-4 sm:p-6 flex items-center justify-between">
+              {/* Left: Ranking label */}
+              <div>
+                <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight">Ranking</h3>
+              </div>
+
+              {/* Right: Position + phase */}
               <div className="text-right">
                 <div>
                   <span
-                    className="px-3 py-1 text-[10px] font-black rounded-full uppercase italic text-white"
+                    className="px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-black rounded-full uppercase italic text-white"
                     style={{ backgroundColor: getPhaseBg() }}
                   >
                     {phase}
                   </span>
-                  <h4 className="text-3xl font-black mt-2 tracking-tighter">Posición #{position}</h4>
+                  <h4 className="text-2xl sm:text-3xl font-black mt-2 tracking-tighter text-white">Posición #{position}</h4>
                 </div>
               </div>
             </div>
           </div>
-          <RankingTable users={allUsers} />
+          <RankingTable users={allUsers} userPosition={position} />
         </div>
       </section>
     </AppShell>

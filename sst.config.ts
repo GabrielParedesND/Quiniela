@@ -27,9 +27,9 @@ export default $config({
       throw new Error("cms-quiniela must be deployed first. Run 'sst deploy' in cms-quiniela directory.");
     }
 
-    // Reference Cognito resources from cms-quiniela using actual IDs from outputs
-    const userPoolId = cmsOutputs.userPoolId;
-    const userPoolClientId = cmsOutputs.userPoolClientId;
+    // Reference Cognito resources — use production pool (has Google/Facebook providers configured)
+    const userPoolId = "us-east-1_XkS75UAQr";
+    const userPoolClientId = "6v8paitflactuv6u9isfvq18kg";
 
     // Reference DynamoDB table names from cms-quiniela outputs
     const usersTableName = cmsOutputs.usersTableName;
@@ -60,6 +60,16 @@ export default $config({
     const standingsTableArn = cmsOutputs.standingsTableArn;
     const printedCodesTableName = cmsOutputs.printedCodesTableName;
     const printedCodesTableArn = cmsOutputs.printedCodesTableArn;
+    const groupsTableName = cmsOutputs.groupsTableName;
+    const groupsTableArn = cmsOutputs.groupsTableArn;
+    const membershipsTableName = cmsOutputs.membershipsTableName;
+    const membershipsTableArn = cmsOutputs.membershipsTableArn;
+    const leaderboardSnapshotsTableName = cmsOutputs.leaderboardSnapshotsTableName;
+    const leaderboardSnapshotsTableArn = cmsOutputs.leaderboardSnapshotsTableArn;
+    const groupAuditLogsTableName = cmsOutputs.groupAuditLogsTableName;
+    const groupAuditLogsTableArn = cmsOutputs.groupAuditLogsTableArn;
+    const authConfigTableName = cmsOutputs.authConfigTableName;
+    const authConfigTableArn = cmsOutputs.authConfigTableArn;
 
     // Reference S3 bucket from cms-quiniela outputs
     const brandingAssetsBucketName = cmsOutputs.brandingAssetsBucketName;
@@ -107,6 +117,14 @@ export default $config({
             `${standingsTableArn}/index/*`,
             printedCodesTableArn,
             `${printedCodesTableArn}/index/*`,
+            groupsTableArn,
+            `${groupsTableArn}/index/*`,
+            membershipsTableArn,
+            `${membershipsTableArn}/index/*`,
+            leaderboardSnapshotsTableArn,
+            groupAuditLogsTableArn,
+            `${groupAuditLogsTableArn}/index/*`,
+            authConfigTableArn,
           ],
         },
         {
@@ -118,6 +136,8 @@ export default $config({
         NEXT_PUBLIC_USER_POOL_ID: userPoolId,
         NEXT_PUBLIC_USER_POOL_CLIENT_ID: userPoolClientId,
         NEXT_PUBLIC_AWS_REGION: region,
+        NEXT_PUBLIC_COGNITO_DOMAIN: "https://auth.nuestrodiario.com",
+        NEXT_PUBLIC_OAUTH_REDIRECT_URI: "https://quiniela.nuestrodiario.com.gt/auth/callback",
         NEXT_PUBLIC_ACTIVITY_LOGS_TABLE: activityLogsTableName,
         DYNAMO_USERS_TABLE: usersTableName,
         DYNAMO_TOURNAMENTS_TABLE: tournamentsTableName,
@@ -129,6 +149,11 @@ export default $config({
         DYNAMO_BRANDING_CONFIG_TABLE: brandingConfigTableName,
         DYNAMO_STANDINGS_TABLE: standingsTableName,
         DYNAMO_PRINTED_CODES_TABLE: printedCodesTableName,
+        DYNAMO_GROUPS_TABLE: groupsTableName,
+        DYNAMO_MEMBERSHIPS_TABLE: membershipsTableName,
+        DYNAMO_LEADERBOARD_SNAPSHOTS_TABLE: leaderboardSnapshotsTableName,
+        DYNAMO_GROUP_AUDIT_LOGS_TABLE: groupAuditLogsTableName,
+        DYNAMO_AUTH_CONFIG_TABLE: authConfigTableName,
         BRAND_ASSETS_BUCKET_NAME: brandingAssetsBucketName,
         NEXT_PUBLIC_BRAND_ASSETS_BASE_URL: brandingAssetsBaseUrl,
         NEXT_PUBLIC_DEMO_MODE: process.env.NEXT_PUBLIC_DEMO_MODE || "false",
@@ -149,6 +174,10 @@ export default $config({
       brandingConfigTableName: brandingConfigTableName,
       standingsTableName: standingsTableName,
       printedCodesTableName: printedCodesTableName,
+      groupsTableName: groupsTableName,
+      membershipsTableName: membershipsTableName,
+      leaderboardSnapshotsTableName: leaderboardSnapshotsTableName,
+      groupAuditLogsTableName: groupAuditLogsTableName,
       brandingAssetsBucketName: brandingAssetsBucketName,
       brandingAssetsBaseUrl,
       region: region,

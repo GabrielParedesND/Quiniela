@@ -1,3 +1,4 @@
+import { PredictionDeadlineRule } from '@/lib/deadline';
 import { computePoints, computePointsByJornada, loadPredictions, savePredictions } from '@/lib/demo';
 import { IS_DEMO_MODE } from '@/lib/demo-mode';
 import { computeTeamStandings, getPhase as getMockPhase, matches, rankingUsers, teams } from '@/lib/mock';
@@ -15,6 +16,7 @@ export interface Match {
   jornada: number;
   dateLabel: string;
   kickoffAt?: string;
+  closesAt?: string;
   apiRound?: string;
   teamAId: string;
   teamBId: string;
@@ -52,6 +54,7 @@ export type Phase =
 export interface RankingUser {
   name: string;
   pts: number;
+  exacts?: number;
   phase: Phase;
 }
 
@@ -63,12 +66,15 @@ export interface QuinielaSnapshot {
   userPredictions: Record<string, { a: string; b: string }>;
   points: number;
   pointsByJornada: number[];
+  userPosition?: number;
+  totalParticipants?: number;
   streak?: {
     current: number;
     threshold: number;
     multiplier: number;
     active: boolean;
   };
+  predictionDeadlineRule: PredictionDeadlineRule;
 }
 
 export function getPhase(pts: number): Phase {
@@ -89,6 +95,7 @@ const EMPTY_SNAPSHOT: QuinielaSnapshot = {
   userPredictions: {},
   points: 0,
   pointsByJornada: [],
+  predictionDeadlineRule: 'per-match',
 };
 
 export const fetchQuinielaSnapshot = async (userId?: string | null, tournamentId?: string | null): Promise<QuinielaSnapshot> => {
@@ -102,6 +109,7 @@ export const fetchQuinielaSnapshot = async (userId?: string | null, tournamentId
       userPredictions: predictions,
       points: computePoints(predictions),
       pointsByJornada: computePointsByJornada(predictions),
+      predictionDeadlineRule: 'per-match',
     };
   }
 

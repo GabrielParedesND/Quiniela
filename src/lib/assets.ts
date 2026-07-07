@@ -40,8 +40,8 @@ export const brandAssets: BrandAssets = {
     sponsor: resolveBrandAssetUrl('/assets/BANNER SPONSOR 600X60.svg'),
   },
   backgrounds: {
-    dashboard: resolveBrandAssetUrl('/assets/DASHBOARD 1920X1080.svg'),
-    userCard: resolveBrandAssetUrl('/assets/CARD USER 400x150.svg'),
+    dashboard: resolveBrandAssetUrl('/assets/DASHBOARD 1920X1080.png'),
+    userCard: resolveBrandAssetUrl('/assets/CARD USER 400x150.png'),
   },
   social: {
     google: resolveBrandAssetUrl('/assets/G 24X24.svg'),

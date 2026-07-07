@@ -28,7 +28,7 @@ export default function LandingPage() {
       <Scoring />
       <Leaderboard />
       <Activations />
-      <AdSpaceLanding />
+      {/* <AdSpaceLanding /> */}
       <Testimonials />
       <Footer />
       

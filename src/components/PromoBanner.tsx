@@ -5,10 +5,7 @@ import { useBranding } from '@/contexts/BrandingContext';
 
 /**
  * Unified sponsor carousel with smooth lateral sliding.
- * - Uses `config.sponsors.logos` only
- * - Responsive: 2 items on mobile, 3 on desktop
- * - 1-3 logos (or 1-2 on mobile): centered, no pagination
- * - More logos than visible: slides one item at a time with smooth transition
+ * Clean, professional design with minimal chrome.
  */
 
 const AUTO_INTERVAL = 4000;
@@ -18,7 +15,6 @@ export default function PromoBanner() {
   const allLogos = config.sponsors?.logos || [];
   const total = allLogos.length;
 
-  // Responsive: detect mobile vs desktop
   const [itemsVisible, setItemsVisible] = useState(3);
   const [itemWidth, setItemWidth] = useState(120);
 
@@ -26,13 +22,13 @@ export default function PromoBanner() {
     if (typeof window === 'undefined') return;
     const w = window.innerWidth;
     if (w < 640) {
-      // Mobile: 2 items, smaller width
       setItemsVisible(2);
-      setItemWidth(Math.min(140, (w - 64) / 2)); // 64px for padding+gaps
+      // Each item takes exactly 50% of available width (container width minus padding)
+      const availableWidth = w - 48; // 24px padding each side
+      setItemWidth(availableWidth / 2);
     } else {
-      // Desktop/tablet: 3 items, gold-size (120×60)
       setItemsVisible(3);
-      setItemWidth(120);
+      setItemWidth(140);
     }
   }, []);
 
@@ -55,22 +51,28 @@ export default function PromoBanner() {
 
   if (total === 0) return null;
 
-  const containerWidth = itemsVisible * (itemWidth + 16); // 16px gap
-  const slotWidth = itemWidth + 16;
+  const containerWidth = itemsVisible * itemWidth;
+  const slotWidth = itemWidth;
 
-  // For non-paginating, just center them
   if (!shouldPaginate) {
     return (
-      <div className="w-full py-2">
-        <div className="text-center mb-2">
-          <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--color-muted)' }}>
+      <div 
+        className="w-full rounded-2xl overflow-hidden py-5 px-4 backdrop-blur-sm"
+        style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}
+      >
+        <div className="text-center mb-4">
+          <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: '#1e293b' }}>
             Patrocinadores Oficiales
           </p>
         </div>
-        <div className="flex items-center justify-center gap-4 px-4 min-h-[60px]">
+        <div className="flex items-center justify-center px-4 min-h-[60px]">
           {allLogos.map((logo, index) => (
-            <div key={index} className="flex items-center justify-center" style={{ width: itemWidth, height: '60px' }}>
-              <img src={logo} alt="Patrocinador" className="max-w-full max-h-full object-contain" loading="lazy" />
+            <div 
+              key={index} 
+              className="flex items-center justify-center px-2" 
+              style={{ width: `${100 / itemsVisible}%`, height: '60px' }}
+            >
+              <img src={logo} alt="Patrocinador" className="w-full h-full object-contain opacity-90 hover:opacity-100 transition-opacity" loading="lazy" />
             </div>
           ))}
         </div>
@@ -78,14 +80,16 @@ export default function PromoBanner() {
     );
   }
 
-  // Sliding carousel: triple the array for seamless loop
   const extendedLogos = [...allLogos, ...allLogos, ...allLogos];
   const offset = (startIndex + total) * slotWidth;
 
   return (
-    <div className="w-full py-2">
-      <div className="text-center mb-2">
-        <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--color-muted)' }}>
+    <div 
+      className="w-full rounded-2xl overflow-hidden py-5 px-4 backdrop-blur-sm"
+      style={{ backgroundColor: 'rgba(255,255,255,0.55)' }}
+    >
+      <div className="text-center mb-4">
+        <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: '#1e293b' }}>
           Patrocinadores Oficiales
         </p>
       </div>
@@ -99,14 +103,13 @@ export default function PromoBanner() {
             {extendedLogos.map((logo, index) => (
               <div
                 key={index}
-                className="flex items-center justify-center shrink-0"
+                className="flex items-center justify-center shrink-0 px-2"
                 style={{ width: slotWidth, height: '60px' }}
               >
                 <img
                   src={logo}
                   alt="Patrocinador"
-                  className="object-contain"
-                  style={{ maxWidth: itemWidth, maxHeight: '55px' }}
+                  className="w-full h-full object-contain opacity-80"
                   loading="lazy"
                 />
               </div>
@@ -114,7 +117,6 @@ export default function PromoBanner() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

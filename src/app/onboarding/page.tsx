@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated, getUserId } from '@/lib/auth/cognito';
+import { isAuthenticated, getUserId, getUserAttributes } from '@/lib/auth/cognito';
 import {
   saveUserProfile,
   isProfileComplete,
@@ -78,6 +78,25 @@ export default function OnboardingPage() {
         }));
       }
 
+      // If nombres is still empty, try to get the name from Cognito attributes
+      if (!user?.nombres) {
+        try {
+          const attrs = await getUserAttributes();
+          if (attrs?.name) {
+            const nameParts = attrs.name.split(' ');
+            const firstName = nameParts.slice(0, Math.ceil(nameParts.length / 2)).join(' ');
+            const lastName = nameParts.slice(Math.ceil(nameParts.length / 2)).join(' ');
+            setFormData((prev) => ({
+              ...prev,
+              nombres: prev.nombres || firstName,
+              apellidos: prev.apellidos || lastName,
+            }));
+          }
+        } catch {
+          // Cognito attributes not available (e.g., social login without session)
+        }
+      }
+
       setLoading(false);
     };
 
@@ -115,10 +134,21 @@ export default function OnboardingPage() {
       const userId = await getUserId();
       if (!userId) throw new Error('No se pudo obtener el ID de usuario');
 
+      // Get email from Cognito attributes if not available in user profile
+      let email = user?.email || '';
+      if (!email) {
+        try {
+          const attrs = await getUserAttributes();
+          email = attrs?.email || '';
+        } catch {
+          // Cognito attributes not available
+        }
+      }
+
       await saveUserProfile({
         userId,
         createdAt: user?.createdAt || new Date().toISOString(),
-        email: user?.email || '',
+        email,
         avatar: user?.avatar && isProfileAvatarOption(user.avatar)
           ? user.avatar
           : getRandomProfileAvatar(),
@@ -203,6 +233,7 @@ export default function OnboardingPage() {
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 name="dpi"
                 placeholder="0000 00000 0000"
                 maxLength={13}
@@ -224,6 +255,7 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   name="tel"
                   placeholder="0000 0000"
                   maxLength={8}

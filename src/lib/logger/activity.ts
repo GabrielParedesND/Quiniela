@@ -7,7 +7,11 @@ export type ActivityType =
   | 'PASSWORD_CHANGE_SUCCESS'
   | 'PASSWORD_CHANGE_FAILED'
   | 'PASSWORD_RESET_REQUEST'
-  | 'PASSWORD_RESET_SUCCESS';
+  | 'PASSWORD_RESET_SUCCESS'
+  | 'PREDICTIONS_SAVED'
+  | 'PREDICTIONS_SAVE_FAILED'
+  | 'PROFILE_UPDATED'
+  | 'PROFILE_UPDATE_FAILED';
 
 export interface LogActivityParams {
   userId?: string;

@@ -37,9 +37,10 @@ export function savePredictions(predictions: Predictions): void {
 
 export function computePoints(predictions: Predictions): number {
   let total = 0;
-  const playedMatches = matches.filter((m) => m.status === 'played');
+  // Count points for any match that has official scores (played or upcoming with results)
+  const scoredMatches = matches.filter((m) => m.scoreA != null && m.scoreB != null);
 
-  for (const match of playedMatches) {
+  for (const match of scoredMatches) {
     const pred = predictions[match.id];
     if (!pred || pred.a === '' || pred.b === '') continue;
 
@@ -65,8 +66,9 @@ export function computePointsByJornada(predictions: Predictions): number[] {
   const jornadas = [1, 2, 3];
   return jornadas.map((jornada) => {
     let pts = 0;
+    // Count points for any match in this jornada that has official scores
     const jornadaMatches = matches.filter(
-      (m) => m.jornada === jornada && m.status === 'played'
+      (m) => m.jornada === jornada && m.scoreA != null && m.scoreB != null
     );
 
     for (const match of jornadaMatches) {

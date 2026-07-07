@@ -2,8 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated, getUserId, signOut } from '@/lib/auth/cognito';
-import { getUserProfile, UserProfile, SessionExpiredError } from '@/lib/db/users';
+import { isAuthenticated, getUserId, signOut, getUserAttributes } from '@/lib/auth/cognito';
+import { getUserProfile, UserProfile, SessionExpiredError, saveUserProfile } from '@/lib/db/users';
 
 interface UserContextType {
   user: UserProfile | null;
@@ -19,10 +19,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const handleSessionExpired = () => {
-    signOut();
-    setUser(null);
-    alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-    router.push('/');
+    // Only sign out if we can confirm the session is truly expired
+    // by checking if Cognito still has valid tokens
+    isAuthenticated().then((stillValid) => {
+      if (!stillValid) {
+        signOut();
+        setUser(null);
+        router.push('/');
+      }
+      // If still valid, the error was likely a transient DynamoDB issue, not a real session expiry
+    });
   };
 
   const loadUser = async () => {
@@ -42,6 +48,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
 
       const profile = await getUserProfile(userId);
+      
+      // Ensure email is synced from Cognito to DynamoDB on every session
+      if (profile && !profile.email) {
+        try {
+          const attrs = await getUserAttributes();
+          if (attrs?.email) {
+            profile.email = attrs.email;
+            await saveUserProfile(profile);
+          }
+        } catch {
+          // Cognito attributes not available — skip email sync
+        }
+      }
+
       setUser(profile);
     } catch (error) {
       if (error instanceof SessionExpiredError) {

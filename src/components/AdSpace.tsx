@@ -4,28 +4,16 @@ import { useEffect, useState, useCallback } from 'react';
 
 /**
  * Ad Space container with automatic carousel rotation.
- * 
- * Renders a stable container with id="ad-container-main" that external
- * ad scripts (Google Ads/GPT) can target for injection.
- * 
- * Modes:
- * - AD_SCRIPT_ENABLED=true: renders empty container for Google Ads script
- * - AD_SCRIPT_ENABLED=false: shows rotating image ads with crossfade
+ * Responsive: same rotating banners on mobile and desktop.
  */
 
 const AD_SCRIPT_ENABLED = process.env.NEXT_PUBLIC_AD_SCRIPT_ENABLED === 'true';
 
 const ADS = [
-  { id: 'sponsor1', imageUrl: '/assets/ADS/BANNER/BANNER SPONSOR 1.svg', redirectUrl: 'https://www.nuestrodiario.com', label: 'Sponsor 1' },
-  { id: 'sponsor2', imageUrl: '/assets/ADS/BANNER/BANNER SPONSOR 2.svg', redirectUrl: 'https://www.nuestrodiario.com', label: 'Sponsor 2' },
-  { id: 'sponsor3', imageUrl: '/assets/ADS/BANNER/BANNER SPONSOR 3.svg', redirectUrl: 'https://www.nuestrodiario.com', label: 'Sponsor 3' },
+  { id: 'sponsor1', imageUrl: '/assets/ADS/BANNER/banner-1.png', redirectUrl: 'https://www.nuestrodiario.com', label: 'Sponsor 1' },
+  { id: 'sponsor2', imageUrl: '/assets/ADS/BANNER/banner-2.png', redirectUrl: 'https://www.nuestrodiario.com', label: 'Sponsor 2' },
+  { id: 'sponsor3', imageUrl: '/assets/ADS/BANNER/banner-3.png', redirectUrl: 'https://www.nuestrodiario.com', label: 'Sponsor 3' },
 ];
-
-const MOBILE_AD = {
-  imageUrl: '/assets/ADS/BANNER/BANNER ANUNCIO 320X50.svg',
-  redirectUrl: 'https://www.nuestrodiario.com',
-  label: 'Anuncio mobile',
-};
 
 const ROTATION_INTERVAL = 5000;
 
@@ -53,30 +41,24 @@ export default function AdSpace() {
   if (AD_SCRIPT_ENABLED) {
     return (
       <div id="ad-container-main" className="w-full my-2">
-        <div className="max-w-4xl mx-auto min-h-[90px]" />
+        <div className="max-w-4xl mx-auto min-h-[60px]" />
       </div>
     );
   }
 
   return (
     <div id="ad-container-main" className="w-full my-2">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Mobile: single static banner 320×50 */}
-        <div className="sm:hidden rounded-xl overflow-hidden" style={{ height: '50px', maxWidth: '320px', margin: '0 auto' }}>
-          {MOBILE_AD.redirectUrl ? (
-            <a href={MOBILE_AD.redirectUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-              <img src={MOBILE_AD.imageUrl} alt={MOBILE_AD.label} className="w-full h-full object-cover" />
-            </a>
-          ) : (
-            <img src={MOBILE_AD.imageUrl} alt={MOBILE_AD.label} className="w-full h-full object-cover" />
-          )}
-        </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-8">
+        <div className="relative rounded-2xl overflow-hidden shadow-lg max-h-[60px] sm:max-h-[90px]">
+          {/* First image sets the aspect ratio */}
+          <img
+            src={ADS[0].imageUrl}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-auto invisible"
+          />
 
-        {/* Desktop: rotating sponsors 728×90 */}
-        <div
-          className="relative rounded-xl overflow-hidden hidden sm:block"
-          style={{ backgroundColor: 'var(--color-surface)', height: '90px', maxWidth: '728px', margin: '0 auto' }}
-        >
+          {/* Rotating ads layered on top */}
           {ADS.map((ad, index) => {
             const isCurrent = index === currentIndex;
             const content = (
@@ -92,7 +74,7 @@ export default function AdSpace() {
             return (
               <div
                 key={ad.id}
-                className="absolute inset-0 transition-opacity duration-300"
+                className="absolute inset-0 transition-opacity duration-500"
                 style={{
                   opacity: isCurrent ? 1 : 0,
                   pointerEvents: isCurrent ? 'auto' : 'none',
@@ -122,7 +104,7 @@ export default function AdSpace() {
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
-                  className="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                  className="w-2 h-2 rounded-full transition-all duration-300"
                   style={{
                     backgroundColor: index === currentIndex ? '#fff' : 'rgba(255,255,255,0.4)',
                     transform: index === currentIndex ? 'scale(1.3)' : 'scale(1)',

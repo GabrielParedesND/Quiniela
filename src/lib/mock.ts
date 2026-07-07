@@ -10,6 +10,8 @@ export interface Match {
   id: string;
   jornada: number;
   dateLabel: string;
+  kickoffAt?: string;
+  closesAt?: string;
   teamAId: string;
   teamBId: string;
   status: 'played' | 'upcoming';
@@ -91,15 +93,15 @@ export const matches: Match[] = [
   { id: '103', jornada: 1, dateLabel: '13 Jun', teamAId: '9', teamBId: '12', scoreA: 0, scoreB: 2, status: 'played' },
   { id: '104', jornada: 1, dateLabel: '14 Jun', teamAId: '13', teamBId: '16', scoreA: 2, scoreB: 1, status: 'played' },
 
-  { id: '201', jornada: 2, dateLabel: '18 Jun', teamAId: '2', teamBId: '3', scoreA: 0, scoreB: 1, status: 'played' },
-  { id: '202', jornada: 2, dateLabel: '19 Jun', teamAId: '6', teamBId: '7', scoreA: 2, scoreB: 2, status: 'played' },
-  { id: '203', jornada: 2, dateLabel: '20 Jun', teamAId: '10', teamBId: '11', scoreA: 1, scoreB: 0, status: 'played' },
-  { id: '204', jornada: 2, dateLabel: '21 Jun', teamAId: '14', teamBId: '15', scoreA: 1, scoreB: 3, status: 'played' },
+  { id: '201', jornada: 2, dateLabel: '18 Jun', kickoffAt: '2026-06-18T18:00:00+00:00', teamAId: '2', teamBId: '3', scoreA: 0, scoreB: 1, status: 'upcoming' },
+  { id: '202', jornada: 2, dateLabel: '19 Jun', kickoffAt: '2026-06-19T18:00:00+00:00', teamAId: '6', teamBId: '7', scoreA: 2, scoreB: 2, status: 'upcoming' },
+  { id: '203', jornada: 2, dateLabel: '20 Jun', kickoffAt: '2026-06-20T18:00:00+00:00', teamAId: '10', teamBId: '11', scoreA: 1, scoreB: 0, status: 'upcoming' },
+  { id: '204', jornada: 2, dateLabel: '21 Jun', kickoffAt: '2026-06-21T18:00:00+00:00', teamAId: '14', teamBId: '15', scoreA: 1, scoreB: 3, status: 'upcoming' },
 
-  { id: '301', jornada: 3, dateLabel: '24 Jun', teamAId: '1', teamBId: '2', scoreA: 2, scoreB: 1, status: 'played' },
-  { id: '302', jornada: 3, dateLabel: '25 Jun', teamAId: '5', teamBId: '6', scoreA: 1, scoreB: 1, status: 'played' },
-  { id: '303', jornada: 3, dateLabel: '26 Jun', teamAId: '9', teamBId: '10', scoreA: 0, scoreB: 2, status: 'played' },
-  { id: '304', jornada: 3, dateLabel: '27 Jun', teamAId: '13', teamBId: '14', scoreA: 3, scoreB: 0, status: 'played' },
+  { id: '301', jornada: 3, dateLabel: '24 Jun', kickoffAt: '2026-06-24T18:00:00+00:00', teamAId: '1', teamBId: '2', scoreA: 2, scoreB: 1, status: 'upcoming' },
+  { id: '302', jornada: 3, dateLabel: '25 Jun', kickoffAt: '2026-06-25T18:00:00+00:00', teamAId: '5', teamBId: '6', scoreA: 1, scoreB: 1, status: 'upcoming' },
+  { id: '303', jornada: 3, dateLabel: '26 Jun', kickoffAt: '2026-06-26T18:00:00+00:00', teamAId: '9', teamBId: '10', scoreA: 0, scoreB: 2, status: 'upcoming' },
+  { id: '304', jornada: 3, dateLabel: '27 Jun', kickoffAt: '2026-06-27T18:00:00+00:00', teamAId: '13', teamBId: '14', scoreA: 3, scoreB: 0, status: 'upcoming' },
 ];
 
 export const defaultPredictions: Record<string, UserPrediction> = {

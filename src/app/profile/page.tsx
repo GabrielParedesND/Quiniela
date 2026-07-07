@@ -229,6 +229,7 @@ export default function ProfilePage() {
                 <label className="text-[10px] font-black uppercase ml-1" style={{ color: 'var(--color-muted)' }}>DPI (13 dígitos)</label>
                 <input
                   name="dpi"
+                  inputMode="numeric"
                   maxLength={13}
                   value={formData.dpi}
                   onChange={(e) => setFormData((prev) => ({ ...prev, dpi: e.target.value.replace(/[^0-9]/g, '') }))}
@@ -241,6 +242,7 @@ export default function ProfilePage() {
                 <label className="text-[10px] font-black uppercase ml-1" style={{ color: 'var(--color-muted)' }}>Teléfono (8 dígitos)</label>
                 <input
                   name="tel"
+                  inputMode="numeric"
                   maxLength={8}
                   value={formData.tel}
                   onChange={(e) => setFormData((prev) => ({ ...prev, tel: e.target.value.replace(/[^0-9]/g, '') }))}

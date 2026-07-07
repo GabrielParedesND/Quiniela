@@ -38,6 +38,7 @@ const clearDemoSession = (): void => {
 export interface SignUpParams {
   email: string;
   password: string;
+  name: string;
 }
 
 export interface SignInParams {
@@ -46,7 +47,7 @@ export interface SignInParams {
 }
 
 export const signUp = async (params: SignUpParams): Promise<any> => {
-  const { email, password } = params;
+  const { email, password, name } = params;
 
   if (IS_DEMO_MODE) {
     if (!email || !password) {
@@ -57,6 +58,7 @@ export const signUp = async (params: SignUpParams): Promise<any> => {
 
   const attributeList = [
     new CognitoUserAttribute({ Name: 'email', Value: email }),
+    new CognitoUserAttribute({ Name: 'name', Value: name }),
   ];
 
   return new Promise((resolve, reject) => {
@@ -283,15 +285,35 @@ export const getUserId = async (): Promise<string | null> => {
     return null;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     cognitoUser.getSession((err: any, session: any) => {
-      if (err) {
-        reject(err);
+      if (err || !session) {
+        // Fallback: try to extract userId from stored ID token
+        try {
+          const clientId = process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID || '';
+          const lastAuthUser = localStorage?.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
+          if (lastAuthUser) {
+            const idTokenKey = `CognitoIdentityServiceProvider.${clientId}.${lastAuthUser}.idToken`;
+            const idToken = localStorage?.getItem(idTokenKey);
+            if (idToken) {
+              const payload = JSON.parse(atob(idToken.split('.')[1]));
+              resolve(payload.sub || null);
+              return;
+            }
+          }
+        } catch {
+          // Token parsing failed
+        }
+        resolve(null);
         return;
       }
 
-      const payload = session.getIdToken().payload;
-      resolve(payload.sub || null);
+      try {
+        const payload = session.getIdToken().payload;
+        resolve(payload.sub || null);
+      } catch {
+        resolve(null);
+      }
     });
   });
 };
@@ -310,7 +332,22 @@ export const isAuthenticated = async (): Promise<boolean> => {
 
   return new Promise((resolve) => {
     cognitoUser.getSession((err: any, session: any) => {
-      if (err || !session.isValid()) {
+      if (err) {
+        // On ANY error, check if we have tokens in localStorage as fallback
+        // This prevents session destruction on network issues, timeouts, or transient failures
+        const storage = typeof window !== 'undefined' ? window.localStorage : null;
+        const clientId = process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID || '';
+        const lastAuthUser = storage?.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
+        if (lastAuthUser) {
+          // Tokens exist locally — assume session is still valid
+          // The SDK will retry refresh on the next call
+          resolve(true);
+          return;
+        }
+        resolve(false);
+        return;
+      }
+      if (!session || !session.isValid()) {
         resolve(false);
         return;
       }

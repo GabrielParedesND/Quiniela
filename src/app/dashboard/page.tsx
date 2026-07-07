@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <section className="fade-in space-y-6">
+      <section className="fade-in space-y-4 sm:space-y-6">
         <TournamentSelector />
 
         <UserCard
@@ -80,9 +80,9 @@ export default function DashboardPage() {
           onViewResults={() => router.push('/results')}
         />
 
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <NavigationCard
-            icon={<img src="/assets/ICON PRON RESULTADOS 48X48.svg" alt="" className="w-8 h-8" />}
+            icon={<img src="/assets/ICON PRON RESULTADOS 48X48.svg" alt="" className="w-7 h-7" />}
             title="Pronosticar Resultados"
             description="Ingresa tus marcadores de la jornada"
             onClick={() => router.push('/predictions')}
@@ -90,19 +90,21 @@ export default function DashboardPage() {
           />
 
           <NavigationCard
-            icon={<img src="/assets/ICON POS DE EQUIPOS 48X48.svg" alt="" className="w-8 h-8" />}
+            icon={<img src="/assets/ICON POS DE EQUIPOS 48X48.svg" alt="" className="w-7 h-7" />}
             title="Posiciones de Equipos"
             description="Mira cómo avanzan los grupos oficiales"
             onClick={() => router.push('/teams')}
             color="emerald"
           />
+        </div>
 
+        <div className="grid grid-cols-1 gap-3">
           <NavigationCard
-            icon={<img src="/assets/ICON ZONA MUNDIALISTA 48X48.svg" alt="" className="w-8 h-8" />}
-            title="Zona Mundialista"
-            description="Fotos, videos, dinámicas y más"
-            onClick={() => router.push('/landing')}
-            color="orange"
+            icon={<img src="/assets/ICON PRON RESULTADOS 48X48.svg" alt="" className="w-7 h-7" />}
+            title="Grupos"
+            description="Compite con tus amigos en ligas privadas"
+            onClick={() => router.push('/groups')}
+            color="blue"
           />
 
           {config.features && config.features.printedCodesEnabled === true && (

@@ -3,14 +3,17 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { getRandomProfileAvatar, isProfileAvatarOption } from '@/lib/assets';
 import { validateAndNormalizeProfileFields } from '@/lib/db/users';
+import { logActivityServer } from '@/lib/logger/server-activity';
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
 export async function POST(request: NextRequest) {
+  let parsedUserId = '';
   try {
     const profile = await request.json();
     const userId = typeof profile?.userId === 'string' ? profile.userId.trim() : '';
+    parsedUserId = userId;
     if (!userId) {
       return NextResponse.json({ error: 'userId requerido' }, { status: 400 });
     }
@@ -57,9 +60,30 @@ export async function POST(request: NextRequest) {
 
     await docClient.send(command);
 
+    logActivityServer({
+      userId,
+      email,
+      activityType: 'PROFILE_UPDATED',
+      metadata: {
+        nombres: validation.normalized.nombres,
+        apellidos: validation.normalized.apellidos,
+      },
+    });
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Error saving profile:', error);
+
+    if (parsedUserId) {
+      logActivityServer({
+        userId: parsedUserId,
+        activityType: 'PROFILE_UPDATE_FAILED',
+        metadata: {
+          error: error?.message || 'Unknown error',
+        },
+      });
+    }
+
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

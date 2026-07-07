@@ -5,6 +5,7 @@ interface Team {
   name: string;
   short: string;
   flagUrl: string;
+  group?: string;
 }
 
 interface MatchCardProps {
@@ -12,6 +13,8 @@ interface MatchCardProps {
   teamB: Team;
   jornada: number;
   dateLabel: string;
+  kickoffTime?: string;
+  groupLabel?: string;
   isLocked: boolean;
   predictionA: string;
   predictionB: string;
@@ -25,6 +28,8 @@ export default function MatchCard({
   teamB,
   jornada,
   dateLabel,
+  kickoffTime,
+  groupLabel,
   isLocked,
   predictionA,
   predictionB,
@@ -47,7 +52,7 @@ export default function MatchCard({
       >
         <span className="flex items-center gap-1.5">
           {isSpecial && <span>⚡</span>}
-          Jornada {jornada} • {dateLabel}
+          Jornada {jornada} • {dateLabel}{kickoffTime && ` • ${kickoffTime}`}{groupLabel && ` • Grupo ${groupLabel}`}
           {isSpecial && multiplier && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/20 text-white">x{multiplier}</span>}
         </span>
         <span className="font-bold" style={{ color: isLocked ? 'var(--color-muted)' : 'var(--color-accent)' }}>
@@ -67,9 +72,10 @@ export default function MatchCard({
         </div>
         <div className="flex items-center space-x-2 w-1/3 justify-center">
           <input
-            type="number"
-            min={0}
-            step={1}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={2}
             value={predictionA}
             onChange={(e) => onPredictionChange?.('a', e.target.value)}
             readOnly={isLocked}
@@ -85,9 +91,10 @@ export default function MatchCard({
             :
           </span>
           <input
-            type="number"
-            min={0}
-            step={1}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={2}
             value={predictionB}
             onChange={(e) => onPredictionChange?.('b', e.target.value)}
             readOnly={isLocked}

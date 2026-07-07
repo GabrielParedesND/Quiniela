@@ -1,0 +1,91 @@
+import { NextRequest, NextResponse } from "next/server";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { getAuthenticatedUserId } from "@/lib/auth";
+import { listPendingRequests } from "@/lib/services/membership-service";
+
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
+const USERS_TABLE = process.env.DYNAMO_USERS_TABLE!;
+
+const ERROR_STATUS_MAP: Record<string, number> = {
+  GROUP_NOT_FOUND: 404,
+  ALREADY_MEMBER: 409,
+  GROUP_FULL: 409,
+  GROUP_CLOSED: 409,
+  INVALID_INVITE_CODE: 400,
+  INVITE_CODE_EXPIRED: 400,
+  USER_BANNED: 403,
+  INSUFFICIENT_PERMISSIONS: 403,
+  CANNOT_REMOVE_OWNER: 403,
+  CANNOT_REMOVE_ADMIN: 403,
+  MUST_TRANSFER_OWNERSHIP: 409,
+  MAX_GROUPS_REACHED: 409,
+  RATE_LIMIT_EXCEEDED: 429,
+};
+
+/**
+ * Fetch user profile from UsersTable to get display name and avatar.
+ */
+async function getUserProfile(userId: string): Promise<{ displayName: string; avatarUrl?: string }> {
+  try {
+    const result = await docClient.send(
+      new GetCommand({
+        TableName: USERS_TABLE,
+        Key: { userId },
+      })
+    );
+    if (result.Item) {
+      const nombres = result.Item.nombres || '';
+      const apellidos = result.Item.apellidos || '';
+      const fullName = `${nombres} ${apellidos}`.trim();
+      return {
+        displayName: fullName || result.Item.email || userId.substring(0, 8),
+        avatarUrl: result.Item.avatar || undefined,
+      };
+    }
+  } catch {
+    // Silently fail — return fallback
+  }
+  return { displayName: userId.substring(0, 8) };
+}
+
+/**
+ * GET /api/groups/[groupId]/requests - List pending join requests (owner or admin)
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ groupId: string }> }
+) {
+  const userId = getAuthenticatedUserId(request);
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { groupId } = await params;
+    const requests = await listPendingRequests(groupId, userId);
+
+    // Enrich pending requests with user profile data (displayName, avatarUrl)
+    const enrichedRequests = await Promise.all(
+      requests.map(async (req) => {
+        const profile = await getUserProfile(req.userId);
+        return {
+          userId: req.userId,
+          displayName: profile.displayName,
+          avatarUrl: profile.avatarUrl,
+          status: req.status,
+          joinedAt: req.joinedAt,
+        };
+      })
+    );
+
+    return NextResponse.json({ data: enrichedRequests });
+  } catch (error) {
+    if (error instanceof Error) {
+      const status = ERROR_STATUS_MAP[error.message] || 500;
+      return NextResponse.json({ error: error.message }, { status });
+    }
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
