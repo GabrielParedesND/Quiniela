@@ -3,7 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { getDefaultBrandingConfig, DEFAULT_TOURNAMENT_ID } from '@/lib/branding/defaults';
 import { normalizeBrandingAssets, normalizeBrandingSponsorUrls } from '@/lib/branding/assets';
-import { AppBrandingConfig, BrandingAssets, BrandingMeta, BrandingSponsors, BrandingSEO, BrandingContent, BrandingSupport, BrandingLegal } from '@/lib/branding/types';
+import { AppBrandingConfig, BrandingAssets, BrandingMeta, BrandingSponsors, BrandingSEO, BrandingContent, BrandingSupport, BrandingLegal, SurveyConfig, SurveyTrigger } from '@/lib/branding/types';
 import { Theme } from '@/lib/theme/types';
 
 const client = new DynamoDBClient({
@@ -115,6 +115,33 @@ const buildConfig = (raw: Record<string, unknown>, tournamentId: string): AppBra
     logos: Array.isArray(raw.sponsorLogos) ? normalizeBrandingSponsorUrls(raw.sponsorLogos as string[]) : [],
   };
 
+  // Survey fields from CMS
+  const validTriggers: SurveyTrigger[] = ['after-login', 'dashboard-load', 'after-predictions'];
+  const hasSurveyFields =
+    typeof raw.surveyUrl === 'string' ||
+    typeof raw.surveyEnabled === 'boolean' ||
+    raw.surveyEnabled === true ||
+    raw.surveyEnabled === false ||
+    typeof raw.surveyTitle === 'string' ||
+    typeof raw.surveyButtonText === 'string' ||
+    typeof raw.surveyImageUrl === 'string' ||
+    typeof raw.surveyMaxFrequency === 'number' ||
+    Array.isArray(raw.surveyTriggers);
+
+  const survey: SurveyConfig | undefined = hasSurveyFields
+    ? {
+        surveyUrl: typeof raw.surveyUrl === 'string' ? raw.surveyUrl : '',
+        surveyEnabled: raw.surveyEnabled === true,
+        surveyTitle: typeof raw.surveyTitle === 'string' ? raw.surveyTitle : '',
+        surveyButtonText: typeof raw.surveyButtonText === 'string' ? raw.surveyButtonText : '',
+        surveyImageUrl: typeof raw.surveyImageUrl === 'string' ? raw.surveyImageUrl : '',
+        surveyMaxFrequency: typeof raw.surveyMaxFrequency === 'number' ? raw.surveyMaxFrequency : 1,
+        surveyTriggers: Array.isArray(raw.surveyTriggers)
+          ? (raw.surveyTriggers as string[]).filter((t): t is SurveyTrigger => validTriggers.includes(t as SurveyTrigger))
+          : [],
+      }
+    : undefined;
+
   return {
     tournamentId,
     brandingId:
@@ -152,6 +179,7 @@ const buildConfig = (raw: Record<string, unknown>, tournamentId: string): AppBra
     features: {
       printedCodesEnabled: raw.printedCodesEnabled === true || raw.printedCodesEnabled === 'true',
     },
+    ...(survey && { survey }),
   };
 };
 

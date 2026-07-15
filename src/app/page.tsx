@@ -65,6 +65,8 @@ export default function LoginPage() {
     try {
       await signIn({ email, password });
       await refreshUser();
+      // Mark that user just logged in so the dashboard can fire the after-login trigger
+      try { sessionStorage.setItem('survey-just-logged-in', '1'); } catch {}
       // Navegar a onboarding, que redirigirá a dashboard si el perfil está completo
       router.push('/onboarding');
     } catch (err: any) {

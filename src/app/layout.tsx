@@ -9,6 +9,7 @@ import ActiveProjectGate from "@/components/ActiveProjectGate";
 import { UserProvider } from "@/contexts/UserContext";
 import { BrandingProvider } from "@/contexts/BrandingContext";
 import { TournamentProvider } from "@/contexts/TournamentContext";
+import { SurveyTriggerProvider } from "@/contexts/SurveyTriggerContext";
 import GTMUserData from "@/components/GTMUserData";
 import DebugImageLabels from "@/components/DebugImageLabels";
 
@@ -90,12 +91,14 @@ export default function RootLayout({
           <ThemeProvider>
             <UserProvider>
               <GTMUserData />
-              <TournamentProvider>
-                <ActiveProjectGate>
-                  <DebugImageLabels />
-                  {children}
-                </ActiveProjectGate>
-              </TournamentProvider>
+              <SurveyTriggerProvider>
+                <TournamentProvider>
+                  <ActiveProjectGate>
+                    <DebugImageLabels />
+                    {children}
+                  </ActiveProjectGate>
+                </TournamentProvider>
+              </SurveyTriggerProvider>
             </UserProvider>
           </ThemeProvider>
         </BrandingProvider>

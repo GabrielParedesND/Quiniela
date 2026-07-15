@@ -14,6 +14,7 @@ import NavigationCard from '@/components/NavigationCard';
 import { isProfileAvatarOption } from '@/lib/assets';
 import { useBranding } from '@/contexts/BrandingContext';
 import { useTournament } from '@/contexts/TournamentContext';
+import { useSurveyTrigger } from '@/contexts/SurveyTriggerContext';
 import TournamentSelector from '@/components/TournamentSelector';
 
 export default function DashboardPage() {
@@ -21,8 +22,25 @@ export default function DashboardPage() {
   const { user, loading } = useUser();
   const { config } = useBranding();
   const { selectedTournamentId: tournamentId } = useTournament();
+  const { fireTrigger } = useSurveyTrigger();
   const [points, setPoints] = useState(0);
   const [printedCodesEnabled, setPrintedCodesEnabled] = useState(false);
+
+  // Fire survey trigger on dashboard load
+  useEffect(() => {
+    if (!loading && user) {
+      // Check if user just logged in — fire 'after-login' trigger instead
+      try {
+        const justLoggedIn = sessionStorage.getItem('survey-just-logged-in');
+        if (justLoggedIn) {
+          sessionStorage.removeItem('survey-just-logged-in');
+          fireTrigger('after-login');
+          return;
+        }
+      } catch {}
+      fireTrigger('dashboard-load');
+    }
+  }, [loading, user, fireTrigger]);
 
   useEffect(() => {
     // Check printed codes feature from branding config

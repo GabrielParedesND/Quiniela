@@ -69,6 +69,18 @@ export interface BrandingFeatures {
   printedCodesEnabled: boolean;
 }
 
+export type SurveyTrigger = 'after-login' | 'dashboard-load' | 'after-predictions';
+
+export interface SurveyConfig {
+  surveyUrl: string;
+  surveyEnabled: boolean;
+  surveyTitle: string;
+  surveyButtonText: string;
+  surveyImageUrl: string;
+  surveyMaxFrequency: number;
+  surveyTriggers: SurveyTrigger[];
+}
+
 export interface AppBrandingConfig {
   tournamentId: string;
   brandingId: string;
@@ -81,5 +93,6 @@ export interface AppBrandingConfig {
   support: BrandingSupport;
   legal: BrandingLegal;
   features: BrandingFeatures;
+  survey?: SurveyConfig;
   updatedAt: string;
 }

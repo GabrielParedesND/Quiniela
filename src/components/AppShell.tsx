@@ -6,6 +6,7 @@ import { isProfileAvatarOption } from '@/lib/assets';
 import { useBranding } from '@/contexts/BrandingContext';
 import AdSpace from './AdSpace';
 import Navbar from './Navbar';
+import SurveyPopup from './SurveyPopup';
 
 interface AppShellProps {
   children: ReactNode;
@@ -80,6 +81,9 @@ export default function AppShell({ children }: AppShellProps) {
           </div>
         </footer>
       </div>
+
+      {/* Survey Popup */}
+      <SurveyPopup />
     </div>
   );
 }
